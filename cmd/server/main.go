@@ -46,7 +46,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	case "counter":
 		value, err := strconv.ParseInt(strings.TrimSpace(params[3]), 10, 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате int64", http.StatusUnprocessableEntity)
+			http.Error(res, "Значение должно быть в формате int64", http.StatusBadRequest)
 			return
 		}
 		val, ok := storage.getMemStorage(params[2])
@@ -62,7 +62,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	case "gauge":
 		value, err := strconv.ParseFloat(strings.TrimSpace(params[3]), 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате float64", http.StatusUnprocessableEntity)
+			http.Error(res, "Значение должно быть в формате float64", http.StatusBadRequest)
 			return
 		}
 		val, ok := storage.getMemStorage(params[2])
@@ -76,7 +76,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 		}
 		storage.setMemStorage(params[2], val)
 	default:
-		http.Error(res, "Недопустимый тип метрики", http.StatusUnprocessableEntity)
+		http.Error(res, "Недопустимый тип метрики", http.StatusBadRequest)
 		return
 	}
 
