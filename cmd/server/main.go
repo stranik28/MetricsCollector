@@ -81,7 +81,6 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.WriteHeader(http.StatusOK)
-	return
 }
 
 var storage = NewMemStorage()
