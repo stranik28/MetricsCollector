@@ -32,7 +32,7 @@ func (mem *MemStorage) getMemStorage(key string) (Metrics, bool) {
 
 func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		http.Error(res, "METHOD NOT ALLOWED", 405)
+		http.Error(res, "METHOD NOT ALLOWED", http.StatusMethodNotAllowed)
 		return
 	}
 	url := req.URL.Path
@@ -46,7 +46,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	case "counter":
 		value, err := strconv.ParseInt(strings.TrimSpace(params[3]), 10, 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате int64", 422)
+			http.Error(res, "Значение должно быть в формате int64", http.StatusUnprocessableEntity)
 			return
 		}
 		val, ok := storage.getMemStorage(params[2])
@@ -62,7 +62,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 	case "gauge":
 		value, err := strconv.ParseFloat(strings.TrimSpace(params[3]), 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате float64", 422)
+			http.Error(res, "Значение должно быть в формате float64", http.StatusUnprocessableEntity)
 			return
 		}
 		val, ok := storage.getMemStorage(params[2])
@@ -76,7 +76,7 @@ func updateMetrics(res http.ResponseWriter, req *http.Request) {
 		}
 		storage.setMemStorage(params[2], val)
 	default:
-		http.Error(res, "Недопустимый тип метрики", 422)
+		http.Error(res, "Недопустимый тип метрики", http.StatusUnprocessableEntity)
 		return
 	}
 
