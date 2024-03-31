@@ -12,6 +12,7 @@ func SendReq(url string, method string) {
 	if err != nil {
 		panic(err)
 	}
+	defer resp.Body.Close()
 	code := resp.StatusCode
 	if code != 200 {
 		panic("Server code not 200")
