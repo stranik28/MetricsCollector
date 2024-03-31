@@ -1,10 +1,10 @@
 package storage
 
 type MemStorage struct {
-	Metrics []Metrics
+	Metrics []Metric
 }
 
-func (m *MemStorage) AddMetric(metric Metrics) {
+func (m *MemStorage) AddMetric(metric Metric) {
 	m.Metrics = append(m.Metrics, metric)
 }
 

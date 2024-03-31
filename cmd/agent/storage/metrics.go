@@ -1,6 +1,6 @@
 package storage
 
-type Metrics struct {
+type Metric struct {
 	Gauge   map[string]float64
 	Counter uint
 }

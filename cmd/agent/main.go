@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/stranik28/MetricsCollector/cmd/agent/server"
 	"github.com/stranik28/MetricsCollector/cmd/agent/storage"
-	"math/rand/v2"
+	"math/rand"
 	"runtime"
 	"slices"
 	"time"
@@ -72,12 +72,12 @@ func collectMetrics() (map[string]float64, uint, error) {
 
 func main() {
 	count := 0
-	memStorage := storage.MemStorage{Metrics: make([]storage.Metrics, 0)}
+	memStorage := storage.MemStorage{Metrics: make([]storage.Metric, 0)}
 	for {
 		time.Sleep(2 * time.Second)
 		count += 1
 		gauge, counter, err := collectMetrics()
-		metric := storage.Metrics{Gauge: gauge, Counter: counter}
+		metric := storage.Metric{Gauge: gauge, Counter: counter}
 		memStorage.AddMetric(metric)
 		if err != nil {
 			panic(err)
