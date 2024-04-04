@@ -10,6 +10,7 @@ func routers() *gin.Engine {
 
 	r.POST("/update/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
 	r.GET("/", handl.AllRecordsHandler)
+	r.GET("/value/:metricType/:metricName", handl.GetMetric)
 
 	return r
 }

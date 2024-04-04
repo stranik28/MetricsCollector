@@ -101,3 +101,17 @@ func AllRecordsHandler(c *gin.Context) {
 	metrics := storage.GetAll()
 	c.JSON(http.StatusOK, metrics)
 }
+
+func GetMetric(c *gin.Context) {
+	metricName := c.Param("metricName")
+	metricType := c.Param("metricType")
+	metric, ok := storage.GetMemStorage(metricName)
+	if !ok {
+		c.JSON(http.StatusNotFound, "Недопустимое имя")
+	}
+	if metricType == "guage" {
+		c.JSON(http.StatusOK, metric.Gauge)
+	} else {
+		c.JSON(http.StatusOK, metric.Counter)
+	}
+}
