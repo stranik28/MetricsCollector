@@ -14,10 +14,10 @@ func TestUpdateMetrics(t *testing.T) {
 	router := gin.Default()
 
 	// Определяем маршрут, который будет использоваться в тесте
-	router.GET("/update/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
+	router.POST("/update/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
 
 	// Создаем фейковый HTTP-запрос
-	req, err := http.NewRequest("GET", "/update/gauge/some_metric/22", nil)
+	req, err := http.NewRequest("POST", "/update/gauge/some_metric/22", nil)
 	if err != nil {
 		t.Fatalf("Could not create request: %v", err)
 	}
@@ -36,7 +36,7 @@ func TestUpdateMetrics(t *testing.T) {
 	router.GET("/upd/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
 
 	// Создаем фейковый HTTP-запрос
-	req, err = http.NewRequest("GET", "/update/gauge/some_metric/22", nil)
+	req, err = http.NewRequest("POST", "/update/gauge/some_metric/22", nil)
 	if err != nil {
 		t.Fatalf("Could not create request: %v", err)
 	}

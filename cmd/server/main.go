@@ -8,7 +8,7 @@ import (
 func routers() *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/update/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
+	r.POST("/update/:metricType/:metricName/:metricValue", handl.UpdateMetrics)
 	r.GET("/", handl.AllRecordsHandler)
 
 	return r
