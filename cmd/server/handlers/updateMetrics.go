@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin"
 	stor "github.com/stranik28/MetricsCollector/cmd/server/storage"
 	"net/http"
 	"strconv"
@@ -9,26 +10,60 @@ import (
 
 var storage = stor.NewMemStorage()
 
-func UpdateMetrics(res http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.Error(res, "METHOD NOT ALLOWED "+req.Method, http.StatusMethodNotAllowed)
-		return
-	}
-	url := req.URL.Path
-	params := strings.Split(url, "/")
-	params = params[1:]
-	if len(params) != 4 {
-		http.Error(res, "Недопустимое количество параметров", http.StatusNotFound)
-		return
-	}
-	switch params[1] {
+//func updateMetrics(metricType string, metricValue string, metricName string){
+//	switch metricType {
+//	case "counter":
+//		value, err := strconv.ParseInt(strings.TrimSpace(metricValue), 10, 64)
+//		if err != nil {
+//			c.JSON(http.StatusBadRequest, "Значение должно быть в формате int64")
+//			return
+//		}
+//		val, ok := storage.GetMemStorage(metricName)
+//		if !ok {
+//			val = stor.Metrics{
+//				Gauge:   0,
+//				Counter: value,
+//			}
+//		} else {
+//			val.Counter += value
+//		}
+//		storage.SetMemStorage(metricName, val)
+//	case "gauge":
+//		value, err := strconv.ParseFloat(strings.TrimSpace(metricValue), 64)
+//		if err != nil {
+//			c.JSON(http.StatusBadRequest, "Значение должно быть в формате float64")
+//			return
+//		}
+//		val, ok := storage.GetMemStorage(metricName)
+//		if !ok {
+//			val = stor.Metrics{
+//				Gauge:   value,
+//				Counter: 0,
+//			}
+//		} else {
+//			val.Gauge = value
+//		}
+//		storage.SetMemStorage(metricName, val)
+//	default:
+//		c.JSON(http.StatusBadRequest, "Недопустимый тип метрики")
+//		return
+//	}
+//
+//	c.JSON(http.StatusOK, nil)
+//}
+
+func UpdateMetrics(c *gin.Context) {
+	metricType := c.Param("metricType")
+	metricName := c.Param("metricName")
+	metricValue := c.Param("metricValue")
+	switch metricType {
 	case "counter":
-		value, err := strconv.ParseInt(strings.TrimSpace(params[3]), 10, 64)
+		value, err := strconv.ParseInt(strings.TrimSpace(metricValue), 10, 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате int64", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, "Значение должно быть в формате int64")
 			return
 		}
-		val, ok := storage.GetMemStorage(params[2])
+		val, ok := storage.GetMemStorage(metricName)
 		if !ok {
 			val = stor.Metrics{
 				Gauge:   0,
@@ -37,14 +72,14 @@ func UpdateMetrics(res http.ResponseWriter, req *http.Request) {
 		} else {
 			val.Counter += value
 		}
-		storage.SetMemStorage(params[2], val)
+		storage.SetMemStorage(metricName, val)
 	case "gauge":
-		value, err := strconv.ParseFloat(strings.TrimSpace(params[3]), 64)
+		value, err := strconv.ParseFloat(strings.TrimSpace(metricValue), 64)
 		if err != nil {
-			http.Error(res, "Значение должно быть в формате float64", http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, "Значение должно быть в формате float64")
 			return
 		}
-		val, ok := storage.GetMemStorage(params[2])
+		val, ok := storage.GetMemStorage(metricName)
 		if !ok {
 			val = stor.Metrics{
 				Gauge:   value,
@@ -53,11 +88,16 @@ func UpdateMetrics(res http.ResponseWriter, req *http.Request) {
 		} else {
 			val.Gauge = value
 		}
-		storage.SetMemStorage(params[2], val)
+		storage.SetMemStorage(metricName, val)
 	default:
-		http.Error(res, "Недопустимый тип метрики", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, "Недопустимый тип метрики")
 		return
 	}
 
-	res.WriteHeader(http.StatusOK)
+	c.JSON(http.StatusOK, nil)
+}
+
+func AllRecordsHandler(c *gin.Context) {
+	metrics := storage.GetAll()
+	c.JSON(http.StatusOK, metrics)
 }

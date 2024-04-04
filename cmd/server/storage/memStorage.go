@@ -18,3 +18,7 @@ func (mem *MemStorage) GetMemStorage(key string) (Metrics, bool) {
 	value, err := mem.metrics[key]
 	return value, err
 }
+
+func (mem *MemStorage) GetAll() map[string]Metrics {
+	return mem.metrics
+}
