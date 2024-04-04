@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	stor "github.com/stranik28/MetricsCollector/cmd/server/storage"
 	"net/http"
@@ -85,6 +86,7 @@ func UpdateMetrics(c *gin.Context) {
 				Gauge:   value,
 				Counter: 0,
 			}
+			fmt.Println(value)
 		} else {
 			val.Gauge = value
 		}
@@ -109,7 +111,7 @@ func GetMetric(c *gin.Context) {
 	if !ok {
 		c.JSON(http.StatusNotFound, "Недопустимое имя")
 	}
-	if metricType == "guage" {
+	if metricType == "gauge" {
 		c.JSON(http.StatusOK, metric.Gauge)
 	} else {
 		c.JSON(http.StatusOK, metric.Counter)
