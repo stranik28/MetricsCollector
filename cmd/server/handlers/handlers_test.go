@@ -59,7 +59,7 @@ func TestGetByName(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code, "Expected status code %d but got %d", http.StatusNotFound, w.Code)
+	assert.Equal(t, http.StatusNotFound, w.Code, "Expected status code %d but got %d", http.StatusNotFound, w.Code)
 
 	req, w = makeReq("/value/counter/Counter metric", "GET")
 

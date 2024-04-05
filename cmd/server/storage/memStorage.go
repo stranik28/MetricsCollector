@@ -38,3 +38,7 @@ func GetMemStorage(key string) (Metric, bool) {
 func GetAll() (map[string]Metric, error) {
 	return storage.metrics, nil
 }
+
+func ClearStorage() {
+	storage = NewMemStorage()
+}
