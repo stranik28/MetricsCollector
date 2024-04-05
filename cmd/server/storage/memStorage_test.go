@@ -8,7 +8,7 @@ import (
 
 func TestMemStorage_GetMemStorage(t *testing.T) {
 	type fields struct {
-		metrics map[string]Metrics
+		metrics map[string]Metric
 	}
 	type args struct {
 		key string
@@ -17,34 +17,41 @@ func TestMemStorage_GetMemStorage(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   Metrics
-		want1  bool
+		want   Metric
+		err    bool
 	}{
 		{
-			name: "Simple test #1",
-			fields: fields{metrics: map[string]Metrics{"some_metric": {
+			name: "Positive test #1",
+			fields: fields{metrics: map[string]Metric{"some_metric": {
 				Gauge:   1.1,
 				Counter: 1,
 			}}},
-			want: Metrics{
+			want: Metric{
 				Gauge:   1.1,
 				Counter: 1,
 			},
-			want1: true,
-			args:  args{key: "some_metric"},
+			err:  false,
+			args: args{key: "some_metric"},
+		},
+		{
+			name:   "Negative test #1",
+			fields: fields{metrics: make(map[string]Metric)},
+			want: Metric{
+				Gauge:   0,
+				Counter: 12,
+			},
+			err: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mem := &MemStorage{
-				metrics: tt.fields.metrics,
+			storage.metrics = tt.fields.metrics
+			got, ok := GetMemStorage(tt.args.key)
+			if ok == tt.err {
+				t.Errorf("GetMemStorage() got1 = %v, want %v", ok, tt.err)
 			}
-			got, got1 := mem.GetMemStorage(tt.args.key)
-			if !reflect.DeepEqual(got, tt.want) {
+			if !reflect.DeepEqual(got, tt.want) && !tt.err {
 				t.Errorf("GetMemStorage() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("GetMemStorage() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}
@@ -52,11 +59,11 @@ func TestMemStorage_GetMemStorage(t *testing.T) {
 
 func TestMemStorage_SetMemStorage(t *testing.T) {
 	type fields struct {
-		metrics map[string]Metrics
+		metrics map[string]Metric
 	}
 	type args struct {
 		key   string
-		value Metrics
+		value Metric
 	}
 	tests := []struct {
 		name   string
@@ -64,12 +71,34 @@ func TestMemStorage_SetMemStorage(t *testing.T) {
 		args   args
 	}{
 		{
-			name:   "Simple test #1",
-			fields: fields{metrics: make(map[string]Metrics)},
+			name:   "Add only Gauge",
+			fields: fields{metrics: make(map[string]Metric)},
 			args: args{
 				key: "Some metric",
-				value: Metrics{
+				value: Metric{
 					Gauge:   1.1,
+					Counter: 0,
+				},
+			},
+		},
+		{
+			name:   "Add only Counter",
+			fields: fields{metrics: make(map[string]Metric)},
+			args: args{
+				key: "Some metric",
+				value: Metric{
+					Gauge:   0,
+					Counter: 1,
+				},
+			},
+		},
+		{
+			name:   "Replace Gauge",
+			fields: fields{metrics: map[string]Metric{"Some metric": {1.1, 0}}},
+			args: args{
+				key: "Some metric",
+				value: Metric{
+					Gauge:   9.8913281,
 					Counter: 0,
 				},
 			},
@@ -77,12 +106,9 @@ func TestMemStorage_SetMemStorage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mem := &MemStorage{
-				metrics: tt.fields.metrics,
-			}
-			assert.Equal(t, 0, len(mem.metrics))
-			mem.SetMemStorage(tt.args.key, tt.args.value)
-			assert.Equal(t, 1, len(mem.metrics))
+			storage.metrics = tt.fields.metrics
+			SetMemStorage(tt.args.key, tt.args.value)
+			assert.Equal(t, storage.metrics[tt.args.key], tt.args.value)
 		})
 	}
 }
@@ -94,7 +120,9 @@ func TestNewMemStorage(t *testing.T) {
 	}{
 		{
 			name: "Simple test 1",
-			want: NewMemStorage(),
+			want: &MemStorage{
+				metrics: make(map[string]Metric),
+			},
 		},
 	}
 	for _, tt := range tests {
