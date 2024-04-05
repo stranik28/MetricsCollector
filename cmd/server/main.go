@@ -1,10 +1,15 @@
 package main
 
-import "github.com/stranik28/MetricsCollector/cmd/server/handlers"
+import (
+	"fmt"
+	"github.com/stranik28/MetricsCollector/cmd/server/handlers"
+)
 
 func main() {
+	parsFlags()
 	r := handlers.Routers()
-	err := r.Run(":8080")
+	fmt.Println("Running server on", flagRunAddr)
+	err := r.Run(flagRunAddr)
 	if err != nil {
 		panic(err)
 	}

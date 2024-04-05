@@ -71,25 +71,29 @@ func collectMetrics() (map[string]float64, uint, error) {
 }
 
 func main() {
+	parsFlags()
+	fmt.Println(flagPollInterval)
+	fmt.Println(flagReportInterval)
+	fmt.Println(flagServAddr)
 	count := 0
 	memStorage := storage.MemStorage{Metrics: make([]storage.Metric, 0)}
 	for {
-		time.Sleep(2 * time.Second)
-		count += 1
+		time.Sleep(time.Duration(flagReportInterval) * time.Second)
+		count += flagReportInterval
 		gauge, counter, err := collectMetrics()
 		metric := storage.Metric{Gauge: gauge, Counter: counter}
 		memStorage.AddMetric(metric)
 		if err != nil {
 			panic(err)
 		}
-		if count == 5 {
+		if count >= flagPollInterval {
 			count = 0
-			for _, stor := range memStorage.Metrics {
-				for k, v := range stor.Gauge {
-					url := fmt.Sprintf("http://localhost:8080/update/gauge/%s/%f", k, v)
+			for _, store := range memStorage.Metrics {
+				for k, v := range store.Gauge {
+					url := fmt.Sprintf("%s/update/gauge/%s/%f", flagServAddr, k, v)
 					server.SendReq(url, "POST")
 				}
-				url := fmt.Sprintf("http://localhost:8080/update/counter/PollCount/%d", stor.Counter)
+				url := fmt.Sprintf("%s/update/counter/PollCount/%d", flagServAddr, store.Counter)
 				server.SendReq(url, "POST")
 
 			}
