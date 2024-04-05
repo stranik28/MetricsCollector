@@ -20,7 +20,7 @@ func TestGetAllMetrics(t *testing.T) {
 		{
 			name: "Simple test #1",
 			want: map[string]storage.Metric{"Metric1": {Gauge: 1.89, Counter: 1},
-				"metric2": {893482.213914, 9}},
+				"metric2": {Gauge: 893482.213914, Counter: 9}},
 			wantErr: false,
 		},
 	}

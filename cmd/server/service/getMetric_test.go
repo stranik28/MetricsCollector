@@ -54,8 +54,8 @@ func TestGetMetricByName(t *testing.T) {
 			wantErr: storage.ErrorMetricsNotFound,
 		},
 	}
-	for k, v := range map[string]storage.Metric{"Gauge metric": {6.66, 1},
-		"Counter metric": {893482.213914, 1}} {
+	for k, v := range map[string]storage.Metric{"Gauge metric": {Gauge: 6.66, Counter: 1},
+		"Counter metric": {Gauge: 893482.213914, Counter: 1}} {
 		storage.SetMemStorage(k, v)
 	}
 	for _, tt := range tests {

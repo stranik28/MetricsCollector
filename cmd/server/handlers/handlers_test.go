@@ -36,8 +36,8 @@ func TestUpdateMetricsHandler(t *testing.T) {
 
 func TestGetByName(t *testing.T) {
 
-	for k, v := range map[string]storage.Metric{"GaugeMetric": {6.66, 1},
-		"Counter metric": {893482.213914, 1}} {
+	for k, v := range map[string]storage.Metric{"GaugeMetric": {Gauge: 6.66, Counter: 1},
+		"Counter metric": {Gauge: 893482.213914, Counter: 1}} {
 		storage.SetMemStorage(k, v)
 	}
 
@@ -76,9 +76,9 @@ func TestGetByName(t *testing.T) {
 }
 
 func TestGetMetricHandle(t *testing.T) {
-	data := map[string]storage.Metric{"GaugeMetric": {6.66, 1},
-		"Counter metric": {893482.213914, 1},
-		"Lol metrics":    {777.777777, 69}}
+	data := map[string]storage.Metric{"GaugeMetric": {Gauge: 6.66, Counter: 1},
+		"Counter metric": {Gauge: 893482.213914, Counter: 1},
+		"Lol metrics":    {Gauge: 777.777777, Counter: 69}}
 
 	for k, v := range data {
 		storage.SetMemStorage(k, v)
