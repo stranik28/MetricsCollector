@@ -87,10 +87,10 @@ func main() {
 			count = 0
 			for _, store := range memStorage.Metrics {
 				for k, v := range store.Gauge {
-					url := fmt.Sprintf("%s/update/gauge/%s/%f", flagServAddr, k, v)
+					url := fmt.Sprintf("http://%s/update/gauge/%s/%f", flagServAddr, k, v)
 					server.SendReq(url, "POST")
 				}
-				url := fmt.Sprintf("%s/update/counter/PollCount/%d", flagServAddr, store.Counter)
+				url := fmt.Sprintf("http://%s/update/counter/PollCount/%d", flagServAddr, store.Counter)
 				server.SendReq(url, "POST")
 
 			}
