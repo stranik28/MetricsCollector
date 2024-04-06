@@ -72,9 +72,6 @@ func collectMetrics() (map[string]float64, uint, error) {
 
 func main() {
 	parsFlags()
-	fmt.Println(flagPollInterval)
-	fmt.Println(flagReportInterval)
-	fmt.Println(flagServAddr)
 	count := 0
 	memStorage := storage.MemStorage{Metrics: make([]storage.Metric, 0)}
 	for {
