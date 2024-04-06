@@ -14,7 +14,7 @@ func GetMetric(c *gin.Context) {
 	val, err := service.GetMetricByName(metricName, metricType)
 	if err != nil {
 		if errors.Is(err, storage.ErrorMetricsNotFound) {
-			c.JSON(http.StatusBadRequest, err.Error())
+			c.JSON(http.StatusNotFound, err.Error())
 		}
 	}
 	c.JSON(http.StatusOK, val)
