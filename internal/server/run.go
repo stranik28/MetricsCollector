@@ -1,11 +1,11 @@
-package main
+package server
 
 import (
 	"fmt"
-	"github.com/stranik28/MetricsCollector/cmd/server/handlers"
+	"github.com/stranik28/MetricsCollector/internal/server/handlers"
 )
 
-func main() {
+func Run() {
 	parsFlags()
 	r := handlers.Routers()
 	fmt.Println("Running server on", flagRunAddr)

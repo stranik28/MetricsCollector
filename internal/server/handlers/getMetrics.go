@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/stranik28/MetricsCollector/cmd/server/service"
-	"github.com/stranik28/MetricsCollector/cmd/server/storage"
+	"github.com/stranik28/MetricsCollector/internal/server/service"
+	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"net/http"
 )
 

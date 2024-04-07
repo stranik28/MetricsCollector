@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/stranik28/MetricsCollector/cmd/server/storage"
+	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"strconv"
 	"strings"
 )

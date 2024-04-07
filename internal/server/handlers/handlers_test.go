@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/stranik28/MetricsCollector/cmd/server/storage"
+	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
