@@ -9,7 +9,7 @@ import (
 	"slices"
 )
 
-func memStatsToJson(rtm *runtime.MemStats, inInterface *map[string]interface{}) error {
+func memStatsToJSON(rtm *runtime.MemStats, inInterface *map[string]interface{}) error {
 	inspect, err := json.Marshal(rtm)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func collectMetrics() (*storage.Metric, error) {
 	runtime.ReadMemStats(&rtm)
 	var inInterface map[string]interface{}
 
-	err := memStatsToJson(&rtm, &inInterface)
+	err := memStatsToJSON(&rtm, &inInterface)
 
 	if err != nil {
 		return nil, err
