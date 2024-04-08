@@ -7,10 +7,10 @@ import (
 
 func TestMemStorage_AddMetric(t *testing.T) {
 	type fields struct {
-		Metrics []*Metric
+		Metrics []Metric
 	}
 	type args struct {
-		metric *Metric
+		metric Metric
 	}
 	tests := []struct {
 		name   string
@@ -19,8 +19,8 @@ func TestMemStorage_AddMetric(t *testing.T) {
 	}{
 		{
 			name:   "Simple test #1",
-			fields: fields{Metrics: make([]*Metric, 0)},
-			args: args{metric: &Metric{
+			fields: fields{Metrics: make([]Metric, 0)},
+			args: args{metric: Metric{
 				Gauge:   map[string]float64{"metric1": 6.32},
 				Counter: 1,
 			}},
@@ -40,7 +40,7 @@ func TestMemStorage_AddMetric(t *testing.T) {
 
 func TestMemStorage_ClearMemStorage(t *testing.T) {
 	type fields struct {
-		Metrics []*Metric
+		Metrics []Metric
 	}
 	tests := []struct {
 		name   string
@@ -48,7 +48,7 @@ func TestMemStorage_ClearMemStorage(t *testing.T) {
 	}{
 		{
 			name:   "Simple test #1",
-			fields: fields{Metrics: []*Metric{{Counter: 1, Gauge: map[string]float64{"some": 1.22}}}},
+			fields: fields{Metrics: []Metric{{Counter: 1, Gauge: map[string]float64{"some": 1.22}}}},
 		},
 	}
 	for _, tt := range tests {

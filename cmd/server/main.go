@@ -1,7 +1,17 @@
 package main
 
-import "github.com/stranik28/MetricsCollector/internal/server"
+import (
+	"fmt"
+	"github.com/stranik28/MetricsCollector/internal/server"
+	"github.com/stranik28/MetricsCollector/internal/server/handlers"
+)
 
 func main() {
-	server.Run()
+	server.ParsFlags()
+	r := handlers.Routers()
+	fmt.Println("Running server on", server.FlagRunAddr)
+	err := r.Run(server.FlagRunAddr)
+	if err != nil {
+		panic(err)
+	}
 }

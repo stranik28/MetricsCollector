@@ -6,34 +6,36 @@ import (
 	"strconv"
 )
 
-var flagServAddr string
-var flagReportInterval int
-var flagPollInterval int
+var FlagServAddr string
+var FlagReportInterval int
+var FlagPollInterval int
 
-func parsFlags() {
+func ParsFlags() error {
 
-	flag.StringVar(&flagServAddr, "a", "127.0.0.1:8080", "address and port to run server")
-	flag.IntVar(&flagReportInterval, "r", 2, "Frequency of metrics collecting")
-	flag.IntVar(&flagPollInterval, "p", 10, "Frequency of metrics pooling")
+	flag.StringVar(&FlagServAddr, "a", "127.0.0.1:8080", "address and port to run server")
+	flag.IntVar(&FlagReportInterval, "r", 2, "Frequency of metrics collecting")
+	flag.IntVar(&FlagPollInterval, "p", 10, "Frequency of metrics pooling")
+
 	flag.Parse()
 
 	var err error
 
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		flagServAddr = envRunAddr
+		FlagServAddr = envRunAddr
 	}
 
 	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		flagReportInterval, err = strconv.Atoi(envReportInterval)
+		FlagReportInterval, err = strconv.Atoi(envReportInterval)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
 	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		flagPollInterval, err = strconv.Atoi(envPollInterval)
+		FlagPollInterval, err = strconv.Atoi(envPollInterval)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }

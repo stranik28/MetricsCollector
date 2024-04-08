@@ -5,12 +5,12 @@ import (
 	"os"
 )
 
-var flagRunAddr string
+var FlagRunAddr string
 
-func parsFlags() {
-	flag.StringVar(&flagRunAddr, "a", ":8080", "address and port to run server")
+func ParsFlags() {
+	flag.StringVar(&FlagRunAddr, "a", "127.0.0.1:8080", "address and port to run server")
 	flag.Parse()
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		flagRunAddr = envRunAddr
+		FlagRunAddr = envRunAddr
 	}
 }

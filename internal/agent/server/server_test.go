@@ -12,12 +12,12 @@ func TestSendReq(t *testing.T) {
 	}{
 		{
 			name:   "Simple test #1",
-			server: NewRequest("https://www.google.com/", "GET"),
+			server: NewServer("https://www.google.com/"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code := tt.server.SendReq()
+			code := tt.server.SendReq("GET")
 			assert.Equal(t, code, 200, "Response code get %d", code)
 		})
 	}

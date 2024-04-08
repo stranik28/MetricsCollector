@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr string) {
+func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr string) error {
 	count := 0
 	memStorage := storage.NewMemStorage()
 	for {
@@ -14,7 +14,7 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 		count += flagReportInterval
 		metric, err := collectMetrics()
 		if err != nil {
-			panic(err)
+			return err
 		}
 		memStorage.AddMetric(metric)
 		if count >= flagPollInterval {
