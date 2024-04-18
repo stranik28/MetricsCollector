@@ -25,4 +25,4 @@ vendor/
 .vscode
 
 # Logs
-*.log.*
+*.log
