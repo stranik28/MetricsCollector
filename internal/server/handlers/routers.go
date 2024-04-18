@@ -1,9 +1,18 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/stranik28/MetricsCollector/internal/server/logger"
+)
 
 func Routers() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	err := logger.Init("info")
+	if err != nil {
+		panic(err)
+	}
+	r.Use(logger.MiddlewareInit())
 
 	r.POST("/update/:metricType/:metricName/:metricValue", UpdateMetrics)
 	r.GET("/", AllRecordsHandler)
