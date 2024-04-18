@@ -8,10 +8,6 @@ import (
 func Routers() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	err := logger.Init("info")
-	if err != nil {
-		panic(err)
-	}
 	r.Use(logger.MiddlewareInit())
 
 	r.POST("/update/:metricType/:metricName/:metricValue", UpdateMetrics)
