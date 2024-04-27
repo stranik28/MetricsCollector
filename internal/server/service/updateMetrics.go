@@ -1,48 +1,39 @@
 package service
 
 import (
+	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
-	"strconv"
-	"strings"
 )
 
-func UpdateMetrics(metricType string, metricValue string, metricName string) error {
-	switch metricType {
+func UpdateMetrics(reqModel models.Metrics) (models.Metrics, error) {
+	switch reqModel.MType {
 	case "counter":
-		value, err := strconv.ParseInt(strings.TrimSpace(metricValue), 10, 64)
-		if err != nil {
-			err = storage.ErrorIncorrectTypeInt64
-			return err
-		}
-		val, ok := storage.GetMemStorage(metricName)
+		val, ok := storage.GetMemStorage(reqModel.ID)
 		if !ok {
 			val = storage.Metric{
 				Gauge:   0,
-				Counter: value,
+				Counter: *reqModel.Delta,
 			}
 		} else {
-			val.Counter += value
+			val.Counter += *reqModel.Delta
 		}
-		storage.SetMemStorage(metricName, val)
+		storage.SetMemStorage(reqModel.ID, val)
+		reqModel.Value = &val.Gauge
 	case "gauge":
-		value, err := strconv.ParseFloat(strings.TrimSpace(metricValue), 64)
-		if err != nil {
-			err = storage.ErrorIncorrectTypeFloat64
-			return err
-		}
-		val, ok := storage.GetMemStorage(metricName)
+		val, ok := storage.GetMemStorage(reqModel.ID)
 		if !ok {
 			val = storage.Metric{
-				Gauge:   value,
+				Gauge:   *reqModel.Value,
 				Counter: 0,
 			}
 		} else {
-			val.Gauge = value
+			val.Gauge = *reqModel.Value
 		}
-		storage.SetMemStorage(metricName, val)
+		storage.SetMemStorage(reqModel.ID, val)
+		reqModel.Value = &val.Gauge
 	default:
 		err := storage.ErrorIncorrectTypeMetrics
-		return err
+		return reqModel, err
 	}
-	return nil
+	return reqModel, nil
 }

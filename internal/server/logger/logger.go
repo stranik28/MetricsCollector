@@ -12,7 +12,7 @@ var Log *zap.Logger = zap.NewNop()
 func MiddlewareInit() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
-		requestURI := c.Request.RequestURI
+		requestURL := c.Request.RequestURI
 		c.Next()
 
 		// after request
@@ -24,7 +24,7 @@ func MiddlewareInit() gin.HandlerFunc {
 		Log.Info("Response filed", zap.Int("STATUS_CODE", status),
 			zap.Int("RESPONSE_SIZE", responseSize))
 		Log.Info("Request field", zap.Duration("LATENCY", latency),
-			zap.String("REQUEST URL", requestURI))
+			zap.String("REQUEST URL", requestURL))
 	}
 }
 

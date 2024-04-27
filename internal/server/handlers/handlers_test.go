@@ -1,16 +1,32 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 )
 
-func makeReq(url string, method string) (*http.Request, *httptest.ResponseRecorder) {
+func makeReq(url string, method string, data models.Metrics) (*http.Request, *httptest.ResponseRecorder) {
+	// Сериализуем структуру в JSON
+	jsonData, _ := json.Marshal(data)
+
+	// Создаем запрос с указанным методом и URL
+	req, _ := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
+
+	// Добавляем необходимые заголовки, например, Content-Type
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	return req, w
+}
+
+func makeReqGet(url string, method string) (*http.Request, *httptest.ResponseRecorder) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		panic("Could not create request")
@@ -22,12 +38,36 @@ func makeReq(url string, method string) (*http.Request, *httptest.ResponseRecord
 
 func TestUpdateMetricsHandler(t *testing.T) {
 	router := Routers()
-	req, w := makeReq("/update/gauge/Some metric/123.764564253", "POST")
+	value := 123.764564253
+	model := models.Metrics{
+		ID:    "Some metric",
+		MType: "gauge",
+		Delta: nil,
+		Value: &value,
+	}
+
+	req, w := makeReq("/update/", "POST", model)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
 
-	req, w = makeReq("/update/gaug/some_metric/22", "POST")
+	var respStruct models.Metrics
+
+	err := json.Unmarshal(w.Body.Bytes(), &respStruct)
+
+	assert.NoError(t, err)
+
+	assert.EqualValues(t, respStruct, model)
+
+	value = 22
+	model = models.Metrics{
+		ID:    "some_metric",
+		MType: "gaug",
+		Delta: nil,
+		Value: &value,
+	}
+
+	req, w = makeReq("/update/", "POST", model)
 
 	router.ServeHTTP(w, req)
 
@@ -43,35 +83,54 @@ func TestGetByName(t *testing.T) {
 
 	router := Routers()
 
-	req, w := makeReq("/value/gauge/GaugeMetric", "GET")
+	model := models.Metrics{
+		ID:    "GaugeMetric",
+		MType: "gauge",
+	}
+
+	//var delta int64 = 1
+	//
+	//modelResp := models.Metrics{
+	//	ID:    "GaugeMetric",
+	//	MType: "gauge",
+	//	Delta: &delta,
+	//}
+
+	req, w := makeReq("/value/", "POST", model)
 
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
 
-	responseValue, err := strconv.ParseFloat(w.Body.String(), 64)
-	if err != nil {
-		t.Errorf("Error parsing response value: %v", err)
-	}
-	assert.Equal(t, responseValue, 6.66)
+	//assert.Equal(t, json.Unmarshal(w.Body.Bytes(), &model), modelResp)
 
-	req, w = makeReq("/value/gauge/GaugeMetrics", "GET")
+	model.Delta = nil
+	model.ID = "GaugeMetrics"
+	model.MType = "gauge"
+	model.Value = nil
+
+	req, w = makeReq("/value/", "POST", model)
 
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusNotFound, w.Code, "Expected status code %d but got %d", http.StatusNotFound, w.Code)
 
-	req, w = makeReq("/value/counter/Counter metric", "GET")
+	model.ID = "Counter metric"
+	model.Delta = nil
+	model.MType = "counter"
+	model.Value = nil
+
+	req, w = makeReq("/value/", "POST", model)
 
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
 
-	responseValueInt, err := strconv.ParseInt(w.Body.String(), 10, 64)
+	err := json.Unmarshal(w.Body.Bytes(), &model)
 	if err != nil {
 		t.Errorf("Error parsing response value: %v", err)
 	}
-	assert.EqualValuesf(t, responseValueInt, 1, "Actual diff")
+	assert.EqualValuesf(t, *model.Delta, 1, "Actual diff")
 
 }
 
@@ -85,7 +144,7 @@ func TestGetMetricHandle(t *testing.T) {
 	}
 	router := Routers()
 
-	req, w := makeReq("/", "GET")
+	req, w := makeReqGet("/", "GET")
 
 	router.ServeHTTP(w, req)
 

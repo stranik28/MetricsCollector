@@ -2,7 +2,7 @@ package storage
 
 type Metric struct {
 	Gauge   map[string]float64
-	Counter uint
+	Counter int64
 }
 
 type MemStorage struct {
@@ -19,7 +19,7 @@ func (m *MemStorage) AddMetric(metric Metric) {
 	m.Metrics = append(m.Metrics, metric)
 }
 
-func CreateMetric(gauge map[string]float64, counter uint) Metric {
+func CreateMetric(gauge map[string]float64, counter int64) Metric {
 	return Metric{Gauge: gauge, Counter: counter}
 }
 

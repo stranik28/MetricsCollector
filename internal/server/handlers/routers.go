@@ -10,9 +10,9 @@ func Routers() *gin.Engine {
 	r := gin.Default()
 	r.Use(logger.MiddlewareInit())
 
-	r.POST("/update/:metricType/:metricName/:metricValue", UpdateMetrics)
+	r.POST("/update/", UpdateMetrics)
 	r.GET("/", AllRecordsHandler)
-	r.GET("/value/:metricType/:metricName", GetMetric)
+	r.POST("/value/", GetMetric)
 
 	return r
 }

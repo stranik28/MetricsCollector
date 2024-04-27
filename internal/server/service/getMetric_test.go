@@ -1,54 +1,51 @@
 package service
 
 import (
+	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestGetMetricByName(t *testing.T) {
-	type args struct {
-		metricName string
-		metricType string
-	}
 	tests := []struct {
 		name    string
-		args    args
+		args    models.Metrics
 		want    interface{}
 		wantErr error
 	}{
 		{
 			name: "Positive gauge",
-			args: args{
-				metricName: "Gauge metric",
-				metricType: "gauge",
+			args: models.Metrics{
+				ID:    "Gauge metric",
+				MType: "gauge",
 			},
 			want:    6.66,
 			wantErr: nil,
 		},
 		{
 			name: "Positive counter",
-			args: args{
-				metricName: "Counter metric",
-				metricType: "counter",
+			args: models.Metrics{
+				ID:    "Counter metric",
+				MType: "counter",
 			},
 			want:    1,
 			wantErr: nil,
 		},
 		{
 			name: "Negative test (Fake name)",
-			args: args{
-				metricName: "non exist",
-				metricType: "counter",
+			args: models.Metrics{
+				ID:    "non exist",
+				MType: "counter",
 			},
 			want:    1,
 			wantErr: storage.ErrorMetricsNotFound,
 		},
 		{
 			name: "Negative test (Fake metric type)",
-			args: args{
-				metricName: "Gauge metric",
-				metricType: "Cringe",
+			args: models.Metrics{
+				ID:    "Gauge metric",
+				MType: "Cringe",
 			},
 			want:    1,
 			wantErr: storage.ErrorMetricsNotFound,
@@ -60,9 +57,14 @@ func TestGetMetricByName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetMetricByName(tt.args.metricName, tt.args.metricType)
+
+			got, err := GetMetricByName(tt.args)
 			if tt.wantErr == nil {
-				assert.EqualValuesf(t, tt.want, got, "GetMetricByName(%v, %v)", tt.args.metricName, tt.args.metricType)
+				if got.MType == "counter" {
+					assert.EqualValuesf(t, tt.want, *got.Delta, "GetMetricByName(%v, %v)", tt.args.ID, tt.args.MType)
+				} else {
+					assert.EqualValuesf(t, tt.want, *got.Value, "GetMetricByName(%v, %v)", tt.args.ID, tt.args.MType)
+				}
 			} else {
 				assert.EqualError(t, err, tt.wantErr.Error())
 			}
@@ -107,76 +109,58 @@ func TestGetAllMetrics(t *testing.T) {
 }
 
 func TestUpdateMetrics(t *testing.T) {
-	type args struct {
-		metricType  string
-		metricValue string
-		metricName  string
-	}
+	val1 := 6.66
+	val2 := 7.01
+	var delta1 int64 = 6
+	var delta2 int64 = 98
+	var delta3 int64 = 123
 	tests := []struct {
 		name    string
-		args    args
+		args    models.Metrics
 		wantErr error
 	}{
 		{
 			name: "Positive Insert new gauge",
-			args: args{
-				metricType:  "gauge",
-				metricValue: "6.98584",
-				metricName:  "New gauge",
+			args: models.Metrics{
+				MType: "gauge",
+				Value: &val1,
+				ID:    "New gauge",
 			},
 			wantErr: nil,
 		},
 		{
 			name: "Positive Update gauge",
-			args: args{
-				metricType:  "gauge",
-				metricValue: "7.01",
-				metricName:  "New gauge",
+			args: models.Metrics{
+				MType: "gauge",
+				Value: &val2,
+				ID:    "New gauge",
 			},
 			wantErr: nil,
 		},
 		{
-			name: "Negative Update gauge",
-			args: args{
-				metricType:  "gauge",
-				metricValue: "seven point five",
-				metricName:  "New gauge",
-			},
-			wantErr: storage.ErrorIncorrectTypeFloat64,
-		},
-		{
 			name: "Positive Insert new counter",
-			args: args{
-				metricType:  "counter",
-				metricValue: "6",
-				metricName:  "New counter",
+			args: models.Metrics{
+				MType: "counter",
+				Delta: &delta1,
+				ID:    "New counter",
 			},
 			wantErr: nil,
 		},
 		{
 			name: "Positive Update counter",
-			args: args{
-				metricType:  "counter",
-				metricValue: "98",
-				metricName:  "New counter",
+			args: models.Metrics{
+				MType: "counter",
+				Delta: &delta2,
+				ID:    "New counter",
 			},
 			wantErr: nil,
 		},
 		{
-			name: "Negative Update gauge",
-			args: args{
-				metricType:  "counter",
-				metricValue: "nine",
-				metricName:  "New counter",
-			},
-			wantErr: storage.ErrorIncorrectTypeInt64,
-		},
-		{
 			name: "Negative test #1",
-			args: args{
-				metricType:  "idk",
-				metricValue: "123",
-				metricName:  "New idk",
+			args: models.Metrics{
+				MType: "idk",
+				Delta: &delta3,
+				ID:    "New idk",
 			},
 			wantErr: storage.ErrorIncorrectTypeMetrics,
 		},
@@ -184,7 +168,7 @@ func TestUpdateMetrics(t *testing.T) {
 	storage.ClearStorage()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := UpdateMetrics(tt.args.metricType, tt.args.metricValue, tt.args.metricName)
+			_, err := UpdateMetrics(tt.args)
 			if err != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())
 			}

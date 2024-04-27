@@ -24,7 +24,7 @@ func memStatsToJSON(rtm *runtime.MemStats, inInterface *map[string]interface{}) 
 func collectMetrics() (storage.Metric, error) {
 	gauge := make(map[string]float64)
 
-	var counter uint
+	var counter int64
 
 	var rtm runtime.MemStats
 	runtime.ReadMemStats(&rtm)
@@ -45,8 +45,10 @@ func collectMetrics() (storage.Metric, error) {
 			}
 		}
 	}
+
 	gauge["RandomValue"] = rand.Float64()
 	counter += 1
 	metric := storage.CreateMetric(gauge, counter)
+
 	return metric, nil
 }
