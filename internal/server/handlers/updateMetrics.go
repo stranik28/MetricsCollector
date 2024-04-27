@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stranik28/MetricsCollector/internal/server/logger"
@@ -18,12 +17,10 @@ func UpdateMetrics(c *gin.Context) {
 	logger.Log.Debug("Getting JSON")
 
 	var req models.Metrics
-	dec := json.NewDecoder(c.Request.Body)
 
-	if err := dec.Decode(&req); err != nil {
+	if err := c.Bind(&req); err != nil {
 		logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
 		c.AbortWithStatus(http.StatusInternalServerError)
-		return
 	}
 
 	responseModel, err := service.UpdateMetrics(req)
