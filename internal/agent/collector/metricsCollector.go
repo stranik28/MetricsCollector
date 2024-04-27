@@ -3,6 +3,7 @@ package collector
 import (
 	"github.com/stranik28/MetricsCollector/internal/agent/server"
 	"github.com/stranik28/MetricsCollector/internal/agent/storage"
+	"log"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 	for {
 		metric, err := collectMetrics()
 		if err != nil {
-			return err
+			log.Printf("Error collecting metrics: %s\n", err.Error())
 		}
 		memStorage.AddMetric(metric)
 		if count >= flagPollInterval {
