@@ -10,8 +10,6 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 	count := 0
 	memStorage := storage.NewMemStorage()
 	for {
-		time.Sleep(time.Duration(flagReportInterval) * time.Second)
-		count += flagReportInterval
 		metric, err := collectMetrics()
 		if err != nil {
 			return err
@@ -21,5 +19,7 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 			count = 0
 			server.SendMetrics(memStorage, flagServAddr)
 		}
+		time.Sleep(time.Duration(flagReportInterval) * time.Second)
+		count += flagReportInterval
 	}
 }
