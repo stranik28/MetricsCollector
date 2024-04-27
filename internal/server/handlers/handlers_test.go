@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -165,5 +166,61 @@ func TestGetMetricHandle(t *testing.T) {
 		}
 		assert.Equal(t, expectedMetric, actualMetric, "Expected metric %s with value %v but got %v", key, expectedMetric, actualMetric)
 	}
+
+}
+
+func TestUpdateMetricsHandlerParams(t *testing.T) {
+	router := Routers()
+	req, w := makeReqGet("/update/gauge/Some metric/123.764564253", "POST")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
+
+	req, w = makeReqGet("/update/gaug/some_metric/22", "POST")
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, "Expected status code %d but got %d", http.StatusBadRequest, w.Code)
+}
+
+func TestGetByNameParams(t *testing.T) {
+
+	for k, v := range map[string]storage.Metric{"GaugeMetric": {Gauge: 6.66, Counter: 1},
+		"Counter metric": {Gauge: 893482.213914, Counter: 1}} {
+		storage.SetMemStorage(k, v)
+	}
+
+	router := Routers()
+
+	req, w := makeReqGet("/value/gauge/GaugeMetric", "GET")
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
+
+	responseValue, err := strconv.ParseFloat(w.Body.String(), 64)
+	if err != nil {
+
+		t.Errorf("Error parsing response value: %v", err)
+	}
+	assert.Equal(t, 6.66, responseValue)
+
+	req, w = makeReqGet("/value/gauge/GaugeMetrics", "GET")
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code, "Expected status code %d but got %d", http.StatusNotFound, w.Code)
+
+	req, w = makeReqGet("/value/counter/Counter metric", "GET")
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, "Expected status code %d but got %d", http.StatusOK, w.Code)
+
+	responseValueInt, err := strconv.ParseInt(w.Body.String(), 10, 64)
+	if err != nil {
+		t.Errorf("Error parsing response value: %v", err)
+	}
+	assert.EqualValuesf(t, responseValueInt, 1, "Actual diff")
 
 }

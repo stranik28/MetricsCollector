@@ -37,11 +37,11 @@ func (serv *Server) SendReq(method string) int {
 
 func (serv *Server) SendReqPost(method string, body models.Metrics) int {
 	client := &http.Client{}
-	bodyJson, err := json.Marshal(body)
+	bodyJSON, err := json.Marshal(body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJson))
+	req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJSON))
 	if err != nil {
 		panic(err)
 	}

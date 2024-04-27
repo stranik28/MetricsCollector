@@ -10,6 +10,8 @@ import (
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"go.uber.org/zap"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 func UpdateMetrics(c *gin.Context) {
@@ -34,4 +36,39 @@ func UpdateMetrics(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, responseModel)
+}
+
+func UpdateMetricsParam(c *gin.Context) {
+	var req models.Metrics
+	metricType := c.Param("metricType")
+	metricName := c.Param("metricName")
+	metricValue := c.Param("metricValue")
+
+	req.ID = metricName
+	req.MType = metricType
+
+	if metricType == "counter" {
+		value, err := strconv.ParseInt(strings.TrimSpace(metricValue), 10, 64)
+		if err != nil {
+			err = storage.ErrorIncorrectTypeInt64
+			c.JSON(http.StatusBadRequest, err.Error())
+		}
+		req.Delta = &value
+	} else if metricType == "gauge" {
+		value, err := strconv.ParseFloat(strings.TrimSpace(metricValue), 64)
+		if err != nil {
+			err = storage.ErrorIncorrectTypeFloat64
+			c.JSON(http.StatusBadRequest, err.Error())
+		}
+		req.Value = &value
+	}
+
+	_, err := service.UpdateMetrics(req)
+	if err != nil {
+		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
+			errors.Is(err, storage.ErrorIncorrectTypeFloat64) {
+			c.JSON(http.StatusBadRequest, err.Error())
+		}
+	}
+	c.JSON(http.StatusOK, nil)
 }
