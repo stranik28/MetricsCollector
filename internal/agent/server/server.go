@@ -22,11 +22,11 @@ func (serv *Server) SendReq(method string) int {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, serv.url, nil)
 	if err != nil {
-		panic(err)
+		log.Print("NewRequest: ", err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		log.Print("Do: ", err)
 	}
 	defer resp.Body.Close()
 
