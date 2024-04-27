@@ -21,7 +21,7 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
 			if code != 200 {
 				url = fmt.Sprintf("http://%s/update/gauge/%s/%f", servAddr, k, v)
 				req = NewServer(url)
-				code = req.SendReq("POST")
+				_ = req.SendReq("POST")
 				log.Print("Ответ от сервера не 200")
 			}
 		}
@@ -36,7 +36,7 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
 		if code != 200 {
 			url := fmt.Sprintf("http://%s/update/counter/PollCount/%d", servAddr, store.Counter)
 			req = NewServer(url)
-			code = req.SendReq("POST")
+			_ = req.SendReq("POST")
 			log.Println("Ответ от сервера не 200")
 		}
 	}
