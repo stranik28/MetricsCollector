@@ -19,7 +19,10 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
 			req := NewServer(url)
 			code := req.SendReqPost("POST", model)
 			if code != 200 {
-				log.Fatal("Ответ от сервера не 200")
+				url = fmt.Sprintf("http://%s/update/gauge/%s/%f", servAddr, k, v)
+				req = NewServer(url)
+				code = req.SendReq("POST")
+				log.Print("Ответ от сервера не 200")
 			}
 		}
 		model := models.Metrics{
@@ -27,11 +30,14 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
 			MType: "counter",
 			Delta: &store.Counter,
 		}
-		url := fmt.Sprintf("http://%s/update/counter//%d", servAddr, store.Counter)
+		url := fmt.Sprintf("http://%s/update/", servAddr)
 		req := NewServer(url)
 		code := req.SendReqPost("POST", model)
 		if code != 200 {
-			log.Fatal("Ответ от сервера не 200")
+			url := fmt.Sprintf("http://%s/update/counter/PollCount/%d", servAddr, store.Counter)
+			req = NewServer(url)
+			code = req.SendReq("POST")
+			log.Println("Ответ от сервера не 200")
 		}
 	}
 	memStorage.ClearMemStorage()
