@@ -2,30 +2,21 @@ package server
 
 import (
 	"bytes"
-	"compress/flate"
-	"fmt"
+	"compress/gzip"
+	"github.com/stranik28/MetricsCollector/internal/agent/logger"
+	"go.uber.org/zap"
 )
 
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
-	// создаём переменную w — в неё будут записываться входящие данные,
-	// которые будут сжиматься и сохраняться в bytes.Buffer
-	w, err := flate.NewWriter(&b, flate.BestCompression)
-	if err != nil {
-		return nil, fmt.Errorf("failed init compress writer: %v", err)
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write(data); err != nil {
+		logger.Log.Error("Compress error", zap.Error(err))
+		return nil, err
 	}
-	// запись данных
-	_, err = w.Write(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+	if err := gz.Close(); err != nil {
+		logger.Log.Info("Compress error", zap.Error(err))
+		return nil, err
 	}
-	// обязательно нужно вызвать метод Close() — в противном случае часть данных
-	// может не записаться в буфер b; если нужно выгрузить все упакованные данные
-	// в какой-то момент сжатия, используйте метод Flush()
-	err = w.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed compress data: %v", err)
-	}
-	// переменная b содержит сжатые данные
 	return b.Bytes(), nil
 }
