@@ -28,5 +28,6 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 			server.SendMetrics(memStorage, flagServAddr)
 		}
 		time.Sleep(time.Duration(flagReportInterval) * time.Second)
+		count += flagReportInterval
 	}
 }
