@@ -42,7 +42,7 @@ func loadMetricsFromFile(filename string) (map[string]Metric, error) {
 	return metrics, nil
 }
 
-func saveMetricsPeriodically(filename string, period time.Duration, metricsChan <-chan map[string]Metric) {
+func saveMetricsPeriodically(filename string, period time.Duration) {
 	logger.Log.Info("Init Save Metrics Periodically", zap.String("filename", filename))
 	for {
 		logger.Log.Info("Saving metrics")
@@ -62,11 +62,9 @@ func InitFileSave(filename string, load bool, interval time.Duration) {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	logger.Log.Info("InitDoneSignal")
 
-	// Канал для отправки текущих метрик
-	metricsChan := make(chan map[string]Metric)
 	logger.Log.Info("InitMetricsChan")
 
-	if load == true {
+	if load {
 		logger.Log.Info("Load Metrics")               // объявление err в этом контексте
 		metrics, err := loadMetricsFromFile(filename) // используем оригинальную переменную err
 		if err != nil {
@@ -76,7 +74,7 @@ func InitFileSave(filename string, load bool, interval time.Duration) {
 	}
 
 	// Горутина для сохранения метрик с заданной периодичностью
-	go saveMetricsPeriodically(filename, interval, metricsChan)
+	go saveMetricsPeriodically(filename, interval)
 
 	// Горутина для обработки сигналов завершения
 	go func() {
