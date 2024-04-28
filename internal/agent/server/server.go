@@ -44,15 +44,22 @@ func (serv *Server) SendReqPost(method string, body models.Metrics) int {
 	if err != nil {
 		logger.Log.Warn("Can't Marshal Body", zap.Any("body", body))
 	}
-	logger.Log.Info("Sending request", zap.Any("body", string(bodyJSON)))
+	bodyJSONCompressed, err := Compress(bodyJSON)
+	if err != nil {
+		logger.Log.Error("Error gzip", zap.Any("Error", err.Error()))
+	}
+
+	logger.Log.Info("Sending request", zap.Any("body", string(bodyJSONCompressed)))
 
 	var code int
 
 	for i := 0; i < maxRetries; i++ {
-		req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJSON))
+		req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJSONCompressed))
 		if err != nil {
 			logger.Log.Fatal("Error" + err.Error())
 		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Encoding", "gzip")
 		resp, err := client.Do(req)
 		if err != nil {
 			logger.Log.Error("Cant's " + err.Error())
