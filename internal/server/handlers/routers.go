@@ -1,25 +1,46 @@
 package handlers
 
 import (
+	"bytes"
 	"compress/gzip"
-	zipper "github.com/gin-contrib/gzip"
+	gingzip "github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/stranik28/MetricsCollector/internal/server/logger"
 	"github.com/stranik28/MetricsCollector/internal/server/middleware"
+	"go.uber.org/zap"
 	"net/http"
 )
+
+type responseBodyWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (r responseBodyWriter) Write(b []byte) (int, error) {
+	r.body.Write(b)
+	return r.ResponseWriter.Write(b)
+}
 
 func Routers() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.Use(middleware.Logger())
-	r.Use(zipper.Gzip(zipper.DefaultCompression))
+	r.Use(gingzip.Gzip(gzip.DefaultCompression))
 	r.Use(func(c *gin.Context) {
 		c.Next()
 		if c.Request.Header.Get("Accept-Encoding") == "gzip" {
-			c.Header("Content-Encoding", "gzip")
-			compress := gzip.NewWriter(c.Writer)
-			defer compress.Close()
-			compress.Reset(c.Writer)
+			//	logger.Log.Warn("Accepting Gzip")
+			//	c.Header("Content-Encoding", "gzip")
+			//	logger.Log.Warn("Accepting Gzip")
+			//	compress := gzip.NewWriter(c.Writer)
+			//	logger.Log.Warn("Compressing Gzip")
+			//	defer compress.Close()
+			//	compress.Reset(c.Writer)
+			//	logger.Log.Warn("Compressing Reset")
+			w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: c.Writer}
+			c.Writer = w
+			c.Next()
+			logger.Log.Info("Response body: ", zap.Any("Data", w.body.Bytes))
 		}
 
 	})
