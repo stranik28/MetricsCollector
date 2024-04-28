@@ -16,7 +16,6 @@ import (
 )
 
 func UpdateMetrics(c *gin.Context) {
-	logger.Log.Error("Getting JSON")
 	var req models.Metrics
 	var buf bytes.Buffer
 	// читаем тело запроса

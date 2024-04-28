@@ -9,21 +9,19 @@ import (
 )
 
 func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
-	logger.Log.Info("Memstorage", zap.Any("MemStorage", memStorage))
 	for _, store := range memStorage.Metrics {
-		logger.Log.Info("Gauge", zap.Any("Gauge", store.Gauge))
 		for k, v := range store.Gauge {
-			logger.Log.Info("Sending gauge", zap.String("key", k), zap.Any("value", v))
 			model := models.Metrics{
 				ID:    k,
 				MType: "gauge",
 				Value: &v,
 			}
-			logger.Log.Info("Metrics sending", zap.Any("Metrics", model))
 			url := fmt.Sprintf("http://%s/update/", servAddr)
 			req := NewServer(url)
 			code := req.SendReqPost("POST", model)
-			logger.Log.Info("Metrics sent", zap.Any("Code", code))
+			if code != 200 {
+				logger.Log.Error("Failed to send metrics", zap.Int("code", code), zap.String("url", url))
+			}
 		}
 		model := models.Metrics{
 			ID:    "PollCount",
@@ -34,9 +32,8 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string) {
 		req := NewServer(url)
 		code := req.SendReqPost("POST", model)
 		if code != 200 {
-			logger.Log.Info("Metrics not sent", zap.Any("Metrics", model))
+			logger.Log.Error("Metrics not sent", zap.Any("Metrics", model))
 		}
-		logger.Log.Info("Metrics sent", zap.Any("Code", code))
 	}
 	memStorage.ClearMemStorage()
 }
