@@ -14,6 +14,16 @@ func Routers() *gin.Engine {
 	r.Use(middleware.Logger())
 	r.Use(zipper.Gzip(zipper.DefaultCompression))
 	r.Use(func(c *gin.Context) {
+		c.Next()
+		if c.Request.Header.Get("Accept-Encoding") == "gzip" {
+			c.Header("Content-Encoding", "gzip")
+			compress := gzip.NewWriter(c.Writer)
+			defer compress.Close()
+			compress.Reset(c.Writer)
+		}
+
+	})
+	r.Use(func(c *gin.Context) {
 		// Проверяем наличие заголовка "Content-Encoding" и его значение
 		if c.Request.Header.Get("Content-Encoding") == "gzip" {
 			// Создаем reader для разархивации тела запроса
