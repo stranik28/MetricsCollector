@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// saveMetricsToFile сохраняет метрики в файл
 func saveMetricsToFile(filename string) {
 	metrics, err := GetAll()
 	if err != nil {
@@ -28,7 +27,6 @@ func saveMetricsToFile(filename string) {
 	}
 }
 
-// loadMetricsFromFile загружает метрики из файла
 func loadMetricsFromFile(filename string) (map[string]Metric, error) {
 	var metrics map[string]Metric
 	data, err := os.ReadFile(filename)
@@ -42,7 +40,8 @@ func loadMetricsFromFile(filename string) (map[string]Metric, error) {
 	return metrics, nil
 }
 
-func saveMetricsPeriodically(filename string, period time.Duration) {
+func saveMetricsPeriodically(filename string, period int) {
+	periodDuration := time.Duration(period) * time.Second
 	logger.Log.Info("Init Save Metrics Periodically", zap.String("filename", filename))
 	for {
 		logger.Log.Info("Saving metrics")
@@ -51,22 +50,22 @@ func saveMetricsPeriodically(filename string, period time.Duration) {
 		saveMetricsToFile(filename)
 
 		// Ждем определенное время перед следующим сохранением
-		time.Sleep(period * time.Second)
+		time.Sleep(periodDuration)
 	}
 }
 
-func InitFileSave(filename string, load bool, interval time.Duration) {
+func InitFileSave(filename string, load bool, interval int) {
 	logger.Log.Info("InitFileSave")
 
 	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	logger.Log.Info("InitDoneSignal")
 
 	logger.Log.Info("InitMetricsChan")
 
 	if load {
-		logger.Log.Info("Load Metrics")               // объявление err в этом контексте
-		metrics, err := loadMetricsFromFile(filename) // используем оригинальную переменную err
+		logger.Log.Info("Load Metrics")
+		metrics, err := loadMetricsFromFile(filename)
 		if err != nil {
 			logger.Log.Warn("Ошибка загрузки метрик:", zap.Any("Error", err))
 		}
@@ -80,6 +79,7 @@ func InitFileSave(filename string, load bool, interval time.Duration) {
 	go func() {
 		<-done
 		// При получении сигнала завершения сохраняем текущие метрики
+		logger.Log.Info("Exit InitFileSave")
 		saveMetricsToFile(filename)
 		os.Exit(1)
 	}()
