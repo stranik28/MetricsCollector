@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stranik28/MetricsCollector/internal/server/logger"
@@ -13,12 +15,19 @@ import (
 
 func GetPostMetric(c *gin.Context) {
 	var req models.Metrics
-
-	if err := c.Bind(&req); err != nil {
-		logger.Log.Debug("cannot decode request JSON body", zap.Error(err))
-		c.AbortWithStatus(http.StatusInternalServerError)
-	}
 	logger.Log.Debug("Getting JSON")
+	var buf bytes.Buffer
+	// читаем тело запроса
+	_, err := buf.ReadFrom(c.Request.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	// десериализуем JSON в Visitor
+	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	logger.Log.Debug("received request", zap.Any("request", req))
 
 	responseModel, err := service.GetMetricByName(req)
 

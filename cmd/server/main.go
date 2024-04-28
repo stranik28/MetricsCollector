@@ -9,12 +9,12 @@ import (
 
 func main() {
 	server.ParsFlags()
-	err := logger.Init("info")
+	err := logger.Init("error")
 	if err != nil {
 		panic(err)
 	}
 	r := handlers.Routers()
-	logger.Log.Info("Running server", zap.String("address", server.FlagRunAddr))
+	logger.Log.Error("Running server", zap.String("address", server.FlagRunAddr))
 	err = r.Run(server.FlagRunAddr)
 	if err != nil {
 		panic(err)

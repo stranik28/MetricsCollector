@@ -1,34 +1,12 @@
 package logger
 
 import (
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"time"
 )
 
 var Log *zap.Logger = zap.NewNop()
-
-func MiddlewareInit() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		t := time.Now()
-		requestURL := c.Request.RequestURI
-
-		c.Next()
-
-		// after request
-		latency := time.Since(t)
-		// access the status we are sending
-		status := c.Writer.Status()
-		responseSize := c.Writer.Size()
-
-		// Log request and response information
-		Log.Info("Response field", zap.Int("STATUS_CODE", status),
-			zap.Int("RESPONSE_SIZE", responseSize))
-		Log.Info("Request field", zap.Duration("LATENCY", latency),
-			zap.String("REQUEST_URL", requestURL))
-	}
-}
 
 func Init(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -41,7 +19,7 @@ func Init(level string) error {
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	cfg.Level = lvl
 	cfg.Encoding = "json"
-	cfg.OutputPaths = []string{"info.log"}
+	cfg.OutputPaths = []string{"agent.log"}
 	// создаём логер на основе конфигурации
 	zl, err := cfg.Build()
 	if err != nil {
