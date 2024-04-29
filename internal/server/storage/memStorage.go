@@ -1,6 +1,10 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+	"github.com/stranik28/MetricsCollector/internal/server/logger"
+	"go.uber.org/zap"
+)
 
 var (
 	ErrorMetricsNotFound      = errors.New("метрика не найдена")
@@ -41,4 +45,9 @@ func GetAll() (map[string]Metric, error) {
 
 func ClearStorage() {
 	storage = NewMemStorage()
+}
+
+func SetMemStorageMetric(metrics map[string]Metric) {
+	storage.metrics = metrics
+	logger.Log.Info("MemStorage Metrics Stored", zap.Any("metrics", storage.metrics))
 }

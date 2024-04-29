@@ -2,11 +2,10 @@ package storage
 
 import (
 	"encoding/json"
+	"github.com/stranik28/MetricsCollector/internal/server"
 	"github.com/stranik28/MetricsCollector/internal/server/logger"
 	"go.uber.org/zap"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -15,7 +14,7 @@ func saveMetricsToFile(filename string) {
 	if err != nil {
 		logger.Log.Error("Error getting metrics from file", zap.Error(err))
 	}
-	logger.Log.Info("Saving metrics to file", zap.String("filename", filename))
+	logger.Log.Debug("Saving metrics to file", zap.String("filename", filename))
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		logger.Log.Error("Ошибка маршалинга метрик:", zap.Any("Error", err))
@@ -27,8 +26,9 @@ func saveMetricsToFile(filename string) {
 	}
 }
 
-func loadMetricsFromFile(filename string) (map[string]Metric, error) {
+func LoadMetricsFromFile(filename string) (map[string]Metric, error) {
 	var metrics map[string]Metric
+	logger.Log.Debug("Loading metrics from file", zap.String("filename", filename))
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return metrics, err
@@ -40,48 +40,32 @@ func loadMetricsFromFile(filename string) (map[string]Metric, error) {
 	return metrics, nil
 }
 
-func saveMetricsPeriodically(filename string, period int) {
-	periodDuration := time.Duration(period) * time.Second
-	logger.Log.Info("Init Save Metrics Periodically", zap.String("filename", filename))
-	for {
-		logger.Log.Info("Saving metrics")
-
-		// Сохраняем метрики
-		saveMetricsToFile(filename)
-
-		// Ждем определенное время перед следующим сохранением
-		time.Sleep(periodDuration)
-	}
-}
-
-func InitFileSave(filename string, load bool, interval int) {
-	logger.Log.Info("InitFileSave")
-
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	logger.Log.Info("InitDoneSignal")
-
-	logger.Log.Info("InitMetricsChan")
-
-	if load {
-		logger.Log.Info("Load Metrics")
-		metrics, err := loadMetricsFromFile(filename)
+func InitFileSave(filename string, restore bool, interval int) {
+	periodDuration := time.Duration(interval) * time.Second
+	logger.Log.Debug("InitFileSave")
+	if restore {
+		metrics, err := LoadMetricsFromFile(server.FileStoragePath)
 		if err != nil {
-			logger.Log.Warn("Ошибка загрузки метрик:", zap.Any("Error", err))
+			return
 		}
-		storage = &MemStorage{metrics: metrics}
+		if metrics != nil {
+			SetMemStorageMetric(metrics)
+		}
 	}
+	done := make(chan struct{})
+	defer close(done)
+	// Запускаем таймер для сохранения метрик на диск с указанной периодичностью
+	ticker := time.NewTicker(periodDuration)
+	defer ticker.Stop()
 
-	// Горутина для сохранения метрик с заданной периодичностью
-	go saveMetricsPeriodically(filename, interval)
-
-	// Горутина для обработки сигналов завершения
-	go func() {
-		<-done
-		// При получении сигнала завершения сохраняем текущие метрики
-		logger.Log.Info("Exit InitFileSave")
-		saveMetricsToFile(filename)
-		os.Exit(1)
-	}()
+	for {
+		select {
+		case <-ticker.C:
+			saveMetricsToFile(filename)
+		case <-done:
+			saveMetricsToFile(filename)
+			return
+		}
+	}
 
 }
