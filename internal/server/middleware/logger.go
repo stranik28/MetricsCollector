@@ -14,13 +14,10 @@ func Logger() gin.HandlerFunc {
 
 		c.Next()
 
-		// after request
 		latency := time.Since(t)
-		// access the status we are sending
 		status := c.Writer.Status()
 		responseSize := c.Writer.Size()
 
-		// Log request and response information
 		logger.Log.Info("Response field", zap.Int("STATUS_CODE", status),
 			zap.Int("RESPONSE_SIZE", responseSize))
 		logger.Log.Info("Request field", zap.Duration("LATENCY", latency),
