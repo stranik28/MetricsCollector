@@ -18,13 +18,13 @@ import (
 func UpdateMetrics(c *gin.Context) {
 	var req models.Metrics
 	var buf bytes.Buffer
-	// читаем тело запроса
+
 	_, err := buf.ReadFrom(c.Request.Body)
 	if err != nil {
 		logger.Log.Error("Error reading body", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	// десериализуем JSON в Visitor
+
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

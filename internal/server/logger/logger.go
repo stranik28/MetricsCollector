@@ -13,14 +13,14 @@ func Init(level string) error {
 	if err != nil {
 		return err
 	}
-	// создаём новую конфигурацию логера
+
 	cfg := zap.NewProductionConfig()
-	// устанавливаем уровень
+
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
 	cfg.Level = lvl
 	cfg.Encoding = "json"
 	cfg.OutputPaths = []string{"info.log"}
-	// создаём логер на основе конфигурации
+
 	zl, err := cfg.Build()
 	if err != nil {
 		return err

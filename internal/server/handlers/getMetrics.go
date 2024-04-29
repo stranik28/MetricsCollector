@@ -17,12 +17,12 @@ func GetPostMetric(c *gin.Context) {
 	var req models.Metrics
 	logger.Log.Debug("Getting JSON")
 	var buf bytes.Buffer
-	// читаем тело запроса
+
 	_, err := buf.ReadFrom(c.Request.Body)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	// десериализуем JSON в Visitor
+
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

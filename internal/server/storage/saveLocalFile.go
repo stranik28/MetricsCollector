@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func saveMetricsToFile(filename string) {
+func SaveMetricsToFile(filename string) {
 	metrics, err := GetAll()
 	if err != nil {
 		logger.Log.Error("Error getting metrics from file", zap.Error(err))
@@ -40,7 +40,15 @@ func LoadMetricsFromFile(filename string) (map[string]Metric, error) {
 	return metrics, nil
 }
 
-func InitFileSave(filename string, restore bool, interval int) {
+func InitFileSave(filename string, restore bool, interval int, done chan os.Signal) {
+
+	go func() {
+		<-done
+		logger.Log.Info("Received signal to exit. Saving metrics and shutting down.")
+		SaveMetricsToFile(server.FileStoragePath)
+		os.Exit(0)
+	}()
+
 	periodDuration := time.Duration(interval) * time.Second
 	logger.Log.Debug("InitFileSave")
 	if restore {
@@ -52,8 +60,7 @@ func InitFileSave(filename string, restore bool, interval int) {
 			SetMemStorageMetric(metrics)
 		}
 	}
-	done := make(chan struct{})
-	defer close(done)
+
 	// Запускаем таймер для сохранения метрик на диск с указанной периодичностью
 	ticker := time.NewTicker(periodDuration)
 	defer ticker.Stop()
@@ -61,10 +68,7 @@ func InitFileSave(filename string, restore bool, interval int) {
 	for {
 		select {
 		case <-ticker.C:
-			saveMetricsToFile(filename)
-		case <-done:
-			saveMetricsToFile(filename)
-			return
+			SaveMetricsToFile(filename)
 		}
 	}
 

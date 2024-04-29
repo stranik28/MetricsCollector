@@ -2,8 +2,6 @@ package storage
 
 import (
 	"errors"
-	"github.com/stranik28/MetricsCollector/internal/server/logger"
-	"go.uber.org/zap"
 )
 
 var (
@@ -49,5 +47,4 @@ func ClearStorage() {
 
 func SetMemStorageMetric(metrics map[string]Metric) {
 	storage.metrics = metrics
-	logger.Log.Info("MemStorage Metrics Stored", zap.Any("metrics", storage.metrics))
 }
