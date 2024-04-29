@@ -65,11 +65,8 @@ func InitFileSave(filename string, restore bool, interval int, done chan os.Sign
 	ticker := time.NewTicker(periodDuration)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			SaveMetricsToFile(filename)
-		}
+	for range ticker.C {
+		SaveMetricsToFile(filename)
 	}
 
 }
