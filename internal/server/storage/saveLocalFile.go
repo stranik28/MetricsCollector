@@ -18,6 +18,7 @@ func SaveMetricsToFile(filename string) {
 	}
 	err = os.WriteFile(filename, data, 0666)
 	if err != nil {
+		return
 	}
 }
 
