@@ -10,6 +10,7 @@ import (
 func SaveMetricsToFile(filename string) {
 	metrics, err := GetAll()
 	if err != nil {
+		return
 	}
 	data, err := json.Marshal(metrics)
 	if err != nil {
