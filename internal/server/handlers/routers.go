@@ -3,12 +3,15 @@ package handlers
 import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/stranik28/MetricsCollector/internal/agent/logger"
+	"github.com/stranik28/MetricsCollector/internal/logger"
 	"github.com/stranik28/MetricsCollector/internal/server/middleware"
 )
 
 func Routers() *gin.Engine {
-	logger1 := logger.Init("info")
+	logger1, err := logger.Init("info", "server.log")
+	if err != nil {
+		panic(err)
+	}
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.Use(middleware.Logger(logger1))

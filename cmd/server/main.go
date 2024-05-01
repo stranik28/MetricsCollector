@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/stranik28/MetricsCollector/internal/server"
 	"github.com/stranik28/MetricsCollector/internal/server/handlers"
-	"github.com/stranik28/MetricsCollector/internal/server/middleware"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"os"
 	"os/signal"
@@ -11,13 +10,8 @@ import (
 )
 
 func main() {
-	err := middleware.Init("info")
+	err := server.ParsFlags()
 	if err != nil {
-		panic(err)
-	}
-	err = server.ParsFlags()
-	if err != nil {
-		//logger.Log.Info("Failed to parse flags", zap.Error(err))
 		panic(err)
 	}
 

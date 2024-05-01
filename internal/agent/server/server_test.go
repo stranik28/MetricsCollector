@@ -1,13 +1,13 @@
 package server
 
 import (
-	"github.com/stranik28/MetricsCollector/internal/agent/logger"
+	"github.com/stranik28/MetricsCollector/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSendReq(t *testing.T) {
-	logger1, err := logger.Init("info")
+	logger1, err := logger.Init("info", "test.log")
 
 	if err != nil {
 		t.Error(err)

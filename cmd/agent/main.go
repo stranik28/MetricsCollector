@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/stranik28/MetricsCollector/internal/agent"
 	"github.com/stranik28/MetricsCollector/internal/agent/collector"
-	"github.com/stranik28/MetricsCollector/internal/agent/logger"
+	"github.com/stranik28/MetricsCollector/internal/logger"
 	"log"
 )
 
@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	loggerV, err := logger.Init("info")
+	loggerV, err := logger.Init("info", "agent.log")
 	if err != nil {
 		panic(err)
 	}
