@@ -30,6 +30,9 @@ func LoadMetricsFromFile(filename string) (map[string]Metric, error) {
 	}
 	err = json.Unmarshal(data, &metrics)
 	if err != nil {
+		if len(data) == 0 {
+			return make(map[string]Metric), nil
+		}
 		return metrics, err
 	}
 	return metrics, nil
