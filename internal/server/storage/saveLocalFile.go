@@ -10,15 +10,13 @@ import (
 func SaveMetricsToFile(filename string) {
 	metrics, err := GetAll()
 	if err != nil {
-		panic(err)
 	}
 	data, err := json.Marshal(metrics)
 	if err != nil {
-		panic(err)
+		return
 	}
 	err = os.WriteFile(filename, data, 0666)
 	if err != nil {
-		panic(err)
 	}
 }
 
@@ -49,7 +47,7 @@ func InitFileSave(filename string, restore bool, interval int, done chan os.Sign
 	if restore {
 		metrics, err := LoadMetricsFromFile(server.FileStoragePath)
 		if err != nil {
-			panic(err)
+			return
 		}
 		if metrics != nil {
 			SetMemStorageMetric(metrics)
