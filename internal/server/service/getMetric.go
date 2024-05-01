@@ -1,22 +1,28 @@
 package service
 
 import (
+	"github.com/stranik28/MetricsCollector/internal/server/logger"
+	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 )
 
-func GetMetricByName(metricName string, metricType string) (interface{}, error) {
-	metric, ok := storage.GetMemStorage(metricName)
+func GetMetricByName(modelReq models.Metrics) (models.Metrics, error) {
+	metric, ok := storage.GetMemStorage(modelReq.ID)
 	if !ok {
 		err := storage.ErrorMetricsNotFound
-		return nil, err
+		logger.Log.Warn("Metric not found" + modelReq.ID)
+		return modelReq, err
 	}
-	if metricType == "gauge" {
-		return metric.Gauge, nil
-	} else if metricType == "counter" {
-		return metric.Counter, nil
+	if modelReq.MType == "gauge" {
+		modelReq.Value = &metric.Gauge
+		return modelReq, nil
+	} else if modelReq.MType == "counter" {
+		modelReq.Delta = &metric.Counter
+		return modelReq, nil
 	} else {
 		err := storage.ErrorMetricsNotFound
-		return nil, err
+		logger.Log.Warn("Metrics not found in storage" + modelReq.MType)
+		return modelReq, err
 	}
 
 }

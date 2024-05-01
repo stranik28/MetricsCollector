@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/stranik28/MetricsCollector/internal/agent"
 	"github.com/stranik28/MetricsCollector/internal/agent/collector"
+	"log"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	}
 	err = collector.MetricsCollector(agent.FlagReportInterval, agent.FlagPollInterval, agent.FlagServAddr)
 	if err != nil {
+		log.Print("Failed to start metrics collector")
 		panic(err)
 	}
 }
