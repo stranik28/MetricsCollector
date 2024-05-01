@@ -1,11 +1,18 @@
 package server
 
 import (
+	"github.com/stranik28/MetricsCollector/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSendReq(t *testing.T) {
+	logger1, err := logger.Init("info", "test.log")
+
+	if err != nil {
+		t.Error(err)
+	}
+
 	tests := []struct {
 		name   string
 		server *Server
@@ -17,7 +24,7 @@ func TestSendReq(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code := tt.server.SendReq("GET")
+			code := tt.server.SendReq("GET", logger1)
 			assert.Equal(t, code, 200, "Response code get %d", code)
 		})
 	}

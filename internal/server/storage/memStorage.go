@@ -1,6 +1,8 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrorMetricsNotFound      = errors.New("метрика не найдена")
@@ -41,4 +43,8 @@ func GetAll() (map[string]Metric, error) {
 
 func ClearStorage() {
 	storage = NewMemStorage()
+}
+
+func SetMemStorageMetric(metrics map[string]Metric) {
+	storage.metrics = metrics
 }

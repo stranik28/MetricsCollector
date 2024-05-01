@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/stranik28/MetricsCollector/internal/logger"
 	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,8 @@ import (
 )
 
 func TestGetMetricByName(t *testing.T) {
+	testLogger, err := logger.Init("info", "test.log")
+	assert.Nil(t, err)
 	tests := []struct {
 		name    string
 		args    models.Metrics
@@ -58,7 +61,7 @@ func TestGetMetricByName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := GetMetricByName(tt.args)
+			got, err := GetMetricByName(tt.args, testLogger)
 			if tt.wantErr == nil {
 				if got.MType == "counter" {
 					assert.EqualValuesf(t, tt.want, *got.Delta, "GetMetricByName(%v, %v)", tt.args.ID, tt.args.MType)
