@@ -6,12 +6,10 @@ import (
 	"time"
 )
 
-var Log *zap.Logger = zap.NewNop()
-
-func Init(level string) error {
+func Init(level string) (*zap.Logger, error) {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cfg := zap.NewProductionConfig()
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
@@ -20,10 +18,10 @@ func Init(level string) error {
 	cfg.OutputPaths = []string{"agent.log"}
 	zl, err := cfg.Build()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer zl.Sync()
-	Log = zl
-	return nil
+
+	return zl, nil
 }

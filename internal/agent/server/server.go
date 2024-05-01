@@ -3,10 +3,8 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/stranik28/MetricsCollector/internal/agent/logger"
 	"github.com/stranik28/MetricsCollector/internal/agent/models"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 )
 
@@ -20,15 +18,15 @@ func NewServer(url string) *Server {
 	}
 }
 
-func (serv *Server) SendReq(method string) int {
+func (serv *Server) SendReq(method string, logger *zap.Logger) int {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, serv.url, nil)
 	if err != nil {
-		log.Print("NewRequest: ", err)
+		logger.Error("NewRequest: ", zap.Error(err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Print("Do: ", err)
+		logger.Error("Do: ", zap.Error(err))
 	}
 	defer resp.Body.Close()
 
@@ -37,32 +35,34 @@ func (serv *Server) SendReq(method string) int {
 	return code
 }
 
-func (serv *Server) SendReqPost(method string, body models.Metrics) int {
+func (serv *Server) SendReqPost(method string, body models.Metrics, logger *zap.Logger) (int, error) {
 	maxRetries := 10
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
 	if err != nil {
-		logger.Log.Warn("Can't Marshal Body", zap.Any("body", body))
+		logger.Warn("Can't Marshal Body", zap.Any("body", body))
+		return 0, err
 	}
-	bodyJSONCompressed, err := Compress(bodyJSON)
+	bodyJSONCompressed, err := Compress(bodyJSON, logger)
 	if err != nil {
-		logger.Log.Error("Error gzip", zap.Any("Error", err.Error()))
+		logger.Error("Error gzip", zap.Any("Error", err.Error()))
+		return 0, err
 	}
 
-	logger.Log.Info("Sending request", zap.Any("body", string(bodyJSONCompressed)))
+	logger.Info("Sending request", zap.Any("body", string(bodyJSONCompressed)))
 
 	var code int
 
 	for i := 0; i < maxRetries; i++ {
 		req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJSONCompressed))
 		if err != nil {
-			logger.Log.Fatal("Error" + err.Error())
+			logger.Fatal("Error" + err.Error())
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
 		resp, err := client.Do(req)
 		if err != nil {
-			logger.Log.Error("Cant's " + err.Error())
+			logger.Error("Cant's " + err.Error())
 			continue
 		}
 		defer resp.Body.Close()
@@ -74,5 +74,5 @@ func (serv *Server) SendReqPost(method string, body models.Metrics) int {
 		}
 	}
 
-	return code
+	return code, nil
 }

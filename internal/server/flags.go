@@ -2,7 +2,6 @@ package server
 
 import (
 	"flag"
-	"github.com/stranik28/MetricsCollector/internal/server/logger"
 	"os"
 	"strconv"
 )
@@ -25,7 +24,6 @@ func ParsFlags() error {
 	if envStoreInterval := os.Getenv("STORE_INTERVAL"); envStoreInterval != "" {
 		StoreInterval, err = strconv.Atoi(envStoreInterval)
 		if err != nil {
-			logger.Log.Debug("Error parsing STORE_INTERVAL env var")
 			return err
 		}
 	}
@@ -35,7 +33,6 @@ func ParsFlags() error {
 	if envRestore := os.Getenv("RESTORE"); envRestore != "" {
 		Restore, err = strconv.ParseBool(envRestore)
 		if err != nil {
-			logger.Log.Debug("Error parsing RESTORE env var")
 			return err
 		}
 	}

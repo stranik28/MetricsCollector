@@ -1,12 +1,16 @@
-package logger
+package middleware
 
 import (
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"time"
 )
 
-var Log *zap.Logger = zap.NewNop()
+type GinContextWithLogger struct {
+	*gin.Context
+	*zap.Logger
+}
 
 func Init(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
@@ -28,6 +32,6 @@ func Init(level string) error {
 
 	defer zl.Sync()
 	// устанавливаем синглтон
-	Log = zl
+	log = zl
 	return nil
 }

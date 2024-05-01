@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/stranik28/MetricsCollector/internal/server/logger"
 	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/service"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
@@ -16,20 +15,27 @@ import (
 )
 
 func UpdateMetrics(c *gin.Context) {
+	loggerC, ok := c.Get("Logger")
+	if !ok {
+		c.AbortWithStatusJSON(500, "Logger is not available")
+		return
+	}
+	logger := loggerC.(*zap.Logger)
 	var req models.Metrics
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(c.Request.Body)
 	if err != nil {
-		logger.Log.Error("Error reading body", zap.Error(err))
+		logger.Error("Error reading body", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	logger.Log.Debug("received request", zap.Any("request", req))
+	logger.Debug("received request", zap.Any("request", req))
 
 	responseModel, err := service.UpdateMetrics(req)
 
@@ -37,6 +43,7 @@ func UpdateMetrics(c *gin.Context) {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
 			errors.Is(err, storage.ErrorIncorrectTypeFloat64) {
 			c.JSON(http.StatusBadRequest, err.Error())
+			return
 		}
 	}
 
@@ -57,6 +64,7 @@ func UpdateMetricsParam(c *gin.Context) {
 		if err != nil {
 			err = storage.ErrorIncorrectTypeInt64
 			c.JSON(http.StatusBadRequest, err.Error())
+			return
 		}
 		req.Delta = &value
 	} else if metricType == "gauge" {
@@ -64,6 +72,7 @@ func UpdateMetricsParam(c *gin.Context) {
 		if err != nil {
 			err = storage.ErrorIncorrectTypeFloat64
 			c.JSON(http.StatusBadRequest, err.Error())
+			return
 		}
 		req.Value = &value
 	}
@@ -73,6 +82,7 @@ func UpdateMetricsParam(c *gin.Context) {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
 			errors.Is(err, storage.ErrorIncorrectTypeFloat64) {
 			c.JSON(http.StatusBadRequest, err.Error())
+			return
 		}
 	}
 	c.JSON(http.StatusOK, nil)
