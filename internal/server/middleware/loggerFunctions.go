@@ -12,10 +12,10 @@ type GinContextWithLogger struct {
 	*zap.Logger
 }
 
-func Init(level string) error {
+func Init(level string) (*zap.Logger, error) {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cfg := zap.NewProductionConfig()
@@ -27,11 +27,11 @@ func Init(level string) error {
 
 	zl, err := cfg.Build()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer zl.Sync()
 	// устанавливаем синглтон
-	log = zl
-	return nil
+
+	return zl, nil
 }
