@@ -2,14 +2,18 @@ package storage
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
+	"database/sql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func Connect(connectURL string) error {
-	conn, err := pgx.Connect(context.Background(), connectURL)
+func Connect(connectURL string, ctx context.Context) (*sql.DB, error) {
+	db, err := sql.Open("pgx", connectURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer conn.Close(context.Background())
-	return nil
+	err = db.PingContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }
