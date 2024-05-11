@@ -35,7 +35,7 @@ func (serv *Server) SendReq(method string, logger *zap.Logger) int {
 	return code
 }
 
-func (serv *Server) SendReqPost(method string, body models.Metrics, logger *zap.Logger) (int, error) {
+func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger) (int, error) {
 	maxRetries := 10
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
