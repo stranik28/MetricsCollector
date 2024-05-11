@@ -19,6 +19,7 @@ func Routers() *gin.Engine {
 	r.Use(middleware.Gzip())
 	r.POST("/update/:metricType/:metricName/:metricValue", UpdateMetricsParam)
 	r.POST("/update/", UpdateMetrics)
+	r.POST("/updates/", UpdateMetrics)
 	r.GET("/", AllRecordsHandler)
 	r.POST("/value/", GetPostMetric)
 	r.GET("/value/:metricType/:metricName", GetMetric)
