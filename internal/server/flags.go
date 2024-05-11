@@ -38,7 +38,7 @@ func ParsFlags() error {
 			return err
 		}
 	}
-	if envDBURL := os.Getenv("DB_URL"); envDBURL != "" {
+	if envDBURL := os.Getenv("DATABASE_DSN"); envDBURL != "" {
 		DBURL = envDBURL
 	}
 	return nil
