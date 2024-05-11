@@ -31,7 +31,7 @@ func saveMetricsToDB(db *sql.DB) {
 	if err != nil {
 		panic(err)
 	}
-	sqlStatementDelete := "DELETE FROM gauge; DELETE FROM counter;"
+	sqlStatementDelete := "TRUNCATE TABLE gauge, counter;"
 	_, err = db.Exec(sqlStatementDelete)
 	if err != nil {
 		panic(err)
