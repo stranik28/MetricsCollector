@@ -22,6 +22,7 @@ func Routers() *gin.Engine {
 	r.GET("/", AllRecordsHandler)
 	r.POST("/value/", GetPostMetric)
 	r.GET("/value/:metricType/:metricName", GetMetric)
+	r.GET("/ping", CheckDBConnection)
 
 	return r
 }
