@@ -22,7 +22,6 @@ func UpdateMetrics(c *gin.Context) {
 	}
 	logger := loggerC.(*zap.Logger)
 	var req models.Metrics
-	var reqBatch []models.Metrics
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(c.Request.Body)
@@ -31,17 +30,14 @@ func UpdateMetrics(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err = json.Unmarshal(buf.Bytes(), &reqBatch); err != nil {
-		if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		reqBatch = make([]models.Metrics, 1)
-		reqBatch[0] = req
+
+	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	logger.Debug("received request", zap.Any("request", req))
 
-	responseModel, err := service.UpdateMetrics(reqBatch)
+	responseModel, err := service.UpdateMetrics(req)
 
 	if err != nil {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
@@ -50,15 +46,12 @@ func UpdateMetrics(c *gin.Context) {
 			return
 		}
 	}
-	if len(responseModel) == 1 {
-		c.JSON(http.StatusOK, responseModel[0])
-	}
+
 	c.JSON(http.StatusOK, responseModel)
 }
 
 func UpdateMetricsParam(c *gin.Context) {
 	var req models.Metrics
-	var reqBatch []models.Metrics
 	metricType := c.Param("metricType")
 	metricName := c.Param("metricName")
 	metricValue := c.Param("metricValue")
@@ -84,10 +77,7 @@ func UpdateMetricsParam(c *gin.Context) {
 		req.Value = &value
 	}
 
-	reqBatch = make([]models.Metrics, 1)
-	reqBatch[0] = req
-
-	_, err := service.UpdateMetrics(reqBatch)
+	_, err := service.UpdateMetrics(req)
 	if err != nil {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
 			errors.Is(err, storage.ErrorIncorrectTypeFloat64) {
