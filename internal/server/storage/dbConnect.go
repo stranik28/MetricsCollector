@@ -24,6 +24,8 @@ func Connect(connectURL string, ctx context.Context) (*sql.DB, error) {
 				} else {
 					return nil, err
 				}
+			} else {
+				return db, nil
 			}
 		}
 		return nil, err

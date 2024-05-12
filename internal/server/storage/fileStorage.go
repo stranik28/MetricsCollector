@@ -27,6 +27,8 @@ func SaveMetricsToFile(filename string) {
 				} else {
 					panic(err)
 				}
+			} else {
+				return
 			}
 		}
 	} else if err != nil {
@@ -44,11 +46,13 @@ func LoadMetricsFromFile(filename string) (map[string]Metric, error) {
 			if errors.As(err, &pathError) {
 				time.Sleep(time.Duration(v) * time.Second)
 				data, err = os.ReadFile(filename)
-			} else {
+			} else if err != nil {
 				return nil, err
+			} else {
+				break
 			}
 		}
-	} else {
+	} else if err != nil {
 		return nil, err
 	}
 	err = json.Unmarshal(data, &metrics)
