@@ -51,7 +51,9 @@ func UpdateMetrics(c *gin.Context) {
 		}
 	}
 	if len(responseModel) == 1 {
-		c.JSON(http.StatusOK, responseModel[0])
+		singleResponse := responseModel[0]
+		c.JSON(http.StatusOK, singleResponse)
+		return
 	}
 	c.JSON(http.StatusOK, responseModel)
 }

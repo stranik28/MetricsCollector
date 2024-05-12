@@ -39,5 +39,5 @@ func UpdateMetrics(reqModels []models.Metrics) ([]models.Metrics, error) {
 		}
 		respModels = append(respModels, reqModel)
 	}
-	return respModels, nil
+	return respModels[1:], nil
 }

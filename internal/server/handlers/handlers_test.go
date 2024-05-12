@@ -58,7 +58,7 @@ func TestUpdateMetricsHandler(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	assert.EqualValues(t, respStruct, model)
+	assert.EqualValues(t, model, respStruct)
 
 	value = 22
 	model = models.Metrics{
