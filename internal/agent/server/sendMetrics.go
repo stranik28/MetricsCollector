@@ -8,6 +8,7 @@ import (
 )
 
 func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Logger) {
+	metrics := make([]models.Metrics, 0)
 	for _, store := range memStorage.Metrics {
 		for k, v := range store.Gauge {
 			model := models.Metrics{
@@ -15,26 +16,21 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Lo
 				MType: "gauge",
 				Value: &v,
 			}
-			url := fmt.Sprintf("http://%s/update/", servAddr)
-			req := NewServer(url)
-			code, err := req.SendReqPost("POST", model, logger)
-			if code != 200 || err != nil {
-				logger.Error("Failed to send metrics", zap.Int("code", code),
-					zap.String("url", url), zap.Error(err))
-			}
+			metrics = append(metrics, model)
 		}
 		model := models.Metrics{
 			ID:    "PollCount",
 			MType: "counter",
 			Delta: &store.Counter,
 		}
-		url := fmt.Sprintf("http://%s/update/", servAddr)
-		req := NewServer(url)
-		code, err := req.SendReqPost("POST", model, logger)
-		if code != 200 || err != nil {
-			logger.Error("Failed to send metrics", zap.Int("code", code),
-				zap.String("url", url), zap.Error(err))
-		}
+		metrics = append(metrics, model)
+	}
+	url := fmt.Sprintf("http://%s/update/", servAddr)
+	req := NewServer(url)
+	code, err := req.SendReqPost("POST", metrics, logger)
+	if code != 200 || err != nil {
+		logger.Error("Failed to send metrics", zap.Int("code", code),
+			zap.String("url", url), zap.Error(err))
 	}
 	memStorage.ClearMemStorage()
 }

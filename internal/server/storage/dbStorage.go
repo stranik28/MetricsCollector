@@ -9,7 +9,7 @@ func createTables(db *sql.DB) error {
 	sqlStatement := `
 CREATE TABLE IF NOT EXISTS counter (
     name VARCHAR(64),
-    value integer,
+    value NUMERIC,
     PRIMARY KEY (name)
 );
 CREATE TABLE IF NOT EXISTS gauge (

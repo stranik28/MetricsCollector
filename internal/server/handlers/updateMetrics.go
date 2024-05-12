@@ -52,7 +52,6 @@ func UpdateMetrics(c *gin.Context) {
 	}
 	if len(responseModel) == 1 {
 		c.JSON(http.StatusOK, responseModel[0])
-		return
 	}
 	c.JSON(http.StatusOK, responseModel)
 }
