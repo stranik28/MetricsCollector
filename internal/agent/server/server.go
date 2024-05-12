@@ -6,6 +6,7 @@ import (
 	"github.com/stranik28/MetricsCollector/internal/agent/models"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -36,7 +37,7 @@ func (serv *Server) SendReq(method string, logger *zap.Logger) int {
 }
 
 func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger) (int, error) {
-	maxRetries := 10
+	retries := []int{1, 3, 5}
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
 	if err != nil {
@@ -53,7 +54,7 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 
 	var code int
 
-	for i := 0; i < maxRetries; i++ {
+	for _, i := range retries {
 		req, err := http.NewRequest(method, serv.url, bytes.NewBuffer(bodyJSONCompressed))
 		if err != nil {
 			logger.Fatal("Error" + err.Error())
@@ -72,6 +73,7 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 		if code >= 200 && code < 300 {
 			break
 		}
+		time.Sleep(time.Duration(i) * time.Second)
 	}
 
 	return code, nil
