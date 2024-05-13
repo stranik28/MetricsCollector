@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 )
@@ -26,15 +27,15 @@ CREATE TABLE IF NOT EXISTS gauge (
 	return nil
 }
 
-func saveMetricsToDB(db *sql.DB) {
+func saveMetricsToDB(c context.Context, db *sql.DB) error {
 	err := createTables(db)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	sqlStatementDelete := "TRUNCATE TABLE gauge, counter;"
-	_, err = db.Exec(sqlStatementDelete)
+	_, err = db.ExecContext(c, sqlStatementDelete)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	sqlStrCounter := "INSERT INTO counter (name, value) VALUES "
@@ -43,12 +44,12 @@ func saveMetricsToDB(db *sql.DB) {
 	var gaugeVal []any
 	metrics, err := GetAll()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	countCount := 0
 	countGauge := 0
 	if len(metrics) == 0 {
-		return
+		return nil
 	}
 	for key, val := range metrics {
 		if val.Counter != 0 {
@@ -67,36 +68,36 @@ func saveMetricsToDB(db *sql.DB) {
 
 	tx, err := db.Begin()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if countCount != 0 {
 		stmt, _ := db.Prepare(sqlStrCounter)
-		_, err := stmt.Exec(countVal...)
+		_, err := stmt.ExecContext(c, countVal...)
 		if err != nil {
 			tx.Rollback()
-			panic(err)
+			return err
 		}
 	}
 	if countGauge != 0 {
 		stm, _ := db.Prepare(sqlStrGauge)
-		_, err := stm.Exec(gaugeVal...)
+		_, err := stm.ExecContext(c, gaugeVal...)
 		if err != nil {
 			tx.Rollback()
-			panic(err)
+			return err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		panic(err)
+		return err
 	}
-
+	return nil
 }
 
-func loadMetricsFromDB(db *sql.DB) (map[string]Metric, error) {
+func loadMetricsFromDB(c context.Context, db *sql.DB) (map[string]Metric, error) {
 	metrics := make(map[string]Metric)
 
-	rows, err := db.Query("SELECT name, value FROM counter")
+	rows, err := db.QueryContext(c, "SELECT name, value FROM counter")
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,7 @@ func loadMetricsFromDB(db *sql.DB) (map[string]Metric, error) {
 	}
 
 	// Запрос для получения измерений
-	rows, err = db.Query("SELECT name, value FROM gauge")
+	rows, err = db.QueryContext(c, "SELECT name, value FROM gauge")
 	if err != nil {
 		return nil, err
 	}

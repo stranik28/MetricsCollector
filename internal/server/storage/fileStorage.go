@@ -25,14 +25,14 @@ func SaveMetricsToFile(filename string) {
 				if errors.As(err, &pathError) {
 					time.Sleep(time.Duration(v) * time.Millisecond)
 				} else {
-					panic(err)
+					return
 				}
 			} else {
 				return
 			}
 		}
 	} else if err != nil {
-		panic(err)
+		return
 	}
 }
 

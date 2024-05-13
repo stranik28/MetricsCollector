@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Connect(connectURL string, ctx context.Context) (*sql.DB, error) {
+func Connect(ctx context.Context, connectURL string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", connectURL)
 	if err != nil {
 		return nil, err

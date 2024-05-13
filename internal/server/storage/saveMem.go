@@ -9,11 +9,15 @@ import (
 )
 
 func InitSaveMem(filename string, restore bool, interval int, done chan os.Signal) {
-	db, _ := Connect(server.DBURL, context.Background())
+	c := context.Background()
+	db, _ := Connect(c, server.DBURL)
 	go func(db *sql.DB) {
 		<-done
 		if db != nil {
-			saveMetricsToDB(db)
+			err := saveMetricsToDB(c, db)
+			if err != nil {
+				SaveMetricsToFile(server.FileStoragePath)
+			}
 		} else {
 			SaveMetricsToFile(server.FileStoragePath)
 		}
@@ -25,7 +29,7 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 		var metrics map[string]Metric
 		var err error
 		if db != nil {
-			metrics, err = loadMetricsFromDB(db)
+			metrics, err = loadMetricsFromDB(c, db)
 		} else {
 			metrics, err = LoadMetricsFromFile(server.FileStoragePath)
 		}
@@ -43,7 +47,10 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 
 	for range ticker.C {
 		if server.DBURL != "" {
-			saveMetricsToDB(db)
+			err := saveMetricsToDB(c, db)
+			if err != nil {
+				SaveMetricsToFile(server.FileStoragePath)
+			}
 		} else {
 			SaveMetricsToFile(filename)
 		}
