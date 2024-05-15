@@ -147,18 +147,17 @@ func InsertMetric(c context.Context, db *sql.DB, metrics []models.Metrics) error
 	defer func() {
 		if p := recover(); p != nil {
 			tx.Rollback()
-			panic(p) // re-throw panic after Rollback
 		} else if err != nil {
-			tx.Rollback() // err is non-nil; don't change it
+			tx.Rollback()
 		} else {
-			err = tx.Commit() // err is nil; if Commit returns error update err
+			err = tx.Commit()
 		}
 	}()
 
 	for _, val := range metrics {
 		if val.Delta != nil {
 			_, err = tx.ExecContext(c, "INSERT INTO counter (name, value) VALUES ($1, $2) "+
-				"ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value;", val.ID, val.Delta)
+				"ON CONFLICT (name) DO UPDATE SET value = counter.value + EXCLUDED.value;", val.ID, val.Delta)
 		} else {
 			_, err = tx.ExecContext(c, "INSERT INTO gauge (name, value) VALUES ($1, $2) "+
 				"ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value;", val.ID, val.Value)
@@ -170,65 +169,3 @@ func InsertMetric(c context.Context, db *sql.DB, metrics []models.Metrics) error
 
 	return nil
 }
-
-//func saveMetricsToDB(c context.Context, db *sql.DB) error {
-//	err := createTables(db)
-//	if err != nil {
-//		return err
-//	}
-//
-//	sqlStrCounter := "INSERT INTO counter (name, value) VALUES "
-//	sqlStrGauge := "INSERT INTO gauge (name, value) VALUES "
-//	var countVal []any
-//	var gaugeVal []any
-//	metrics, err := GetAll()
-//	if err != nil {
-//		return err
-//	}
-//	countCount := 0
-//	countGauge := 0
-//	if len(metrics) == 0 {
-//		return nil
-//	}
-//	for key, val := range metrics {
-//		if val.Counter != 0 {
-//			sqlStrCounter += fmt.Sprintf(" ($%d, $%d), ", countCount+1, countCount+2)
-//			countVal = append(countVal, key, val.Counter)
-//			countCount += 2
-//		} else {
-//			sqlStrGauge += fmt.Sprintf(" ($%d, $%d), ", countGauge+1, countGauge+2)
-//			gaugeVal = append(gaugeVal, key, val.Gauge)
-//			countGauge += 2
-//		}
-//	}
-//
-//	sqlStrCounter = sqlStrCounter[:len(sqlStrCounter)-2] + ";"
-//	sqlStrGauge = sqlStrGauge[:len(sqlStrGauge)-2] + ";"
-//
-//	tx, err := db.Begin()
-//	if err != nil {
-//		return err
-//	}
-//	if countCount != 0 {
-//		stmt, _ := db.Prepare(sqlStrCounter)
-//		_, err := stmt.ExecContext(c, countVal...)
-//		if err != nil {
-//			tx.Rollback()
-//			return err
-//		}
-//	}
-//	if countGauge != 0 {
-//		stm, _ := db.Prepare(sqlStrGauge)
-//		_, err := stm.ExecContext(c, gaugeVal...)
-//		if err != nil {
-//			tx.Rollback()
-//			return err
-//		}
-//	}
-//
-//	err = tx.Commit()
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
