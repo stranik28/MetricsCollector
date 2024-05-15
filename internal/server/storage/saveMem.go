@@ -13,12 +13,7 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 	db, _ := Connect(c, server.DBURL)
 	go func(db *sql.DB) {
 		<-done
-		if db != nil {
-			err := saveMetricsToDB(c, db)
-			if err != nil {
-				SaveMetricsToFile(server.FileStoragePath)
-			}
-		} else {
+		if db == nil {
 			SaveMetricsToFile(server.FileStoragePath)
 		}
 		os.Exit(0)
@@ -28,9 +23,7 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 	if restore {
 		var metrics map[string]Metric
 		var err error
-		if db != nil {
-			metrics, err = loadMetricsFromDB(c, db)
-		} else {
+		if db == nil {
 			metrics, err = LoadMetricsFromFile(server.FileStoragePath)
 		}
 		if err != nil {
@@ -46,12 +39,7 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if server.DBURL != "" {
-			err := saveMetricsToDB(c, db)
-			if err != nil {
-				SaveMetricsToFile(server.FileStoragePath)
-			}
-		} else {
+		if server.DBURL == "" {
 			SaveMetricsToFile(filename)
 		}
 	}

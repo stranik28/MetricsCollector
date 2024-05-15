@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/stranik28/MetricsCollector/internal/logger"
 	"github.com/stranik28/MetricsCollector/internal/server/models"
 	"github.com/stranik28/MetricsCollector/internal/server/storage"
@@ -61,7 +62,7 @@ func TestGetMetricByName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := GetMetricByName(tt.args, testLogger)
+			got, err := GetMetricByName(context.Background(), tt.args, testLogger)
 			if tt.wantErr == nil {
 				if got.MType == "counter" {
 					assert.EqualValuesf(t, tt.want, *got.Delta, "GetMetricByName(%v, %v)", tt.args.ID, tt.args.MType)
@@ -99,7 +100,7 @@ func TestGetAllMetrics(t *testing.T) {
 			for k, v := range tt.want {
 				storage.SetMemStorage(k, v)
 			}
-			got, err := GetAllMetrics()
+			got, err := GetAllMetrics(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllMetrics() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -173,7 +174,7 @@ func TestUpdateMetrics(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			batch := make([]models.Metrics, 1)
 			batch[0] = tt.args
-			_, err := UpdateMetrics(batch)
+			_, err := UpdateMetrics(context.Background(), batch)
 			if err != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())
 			}

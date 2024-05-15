@@ -41,7 +41,7 @@ func UpdateMetrics(c *gin.Context) {
 	}
 	logger.Debug("received request", zap.Any("request", req))
 
-	responseModel, err := service.UpdateMetrics(reqBatch)
+	responseModel, err := service.UpdateMetrics(c, reqBatch)
 
 	if err != nil {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
@@ -87,8 +87,7 @@ func UpdateMetricsParam(c *gin.Context) {
 
 	reqBatch = make([]models.Metrics, 1)
 	reqBatch[0] = req
-
-	_, err := service.UpdateMetrics(reqBatch)
+	_, err := service.UpdateMetrics(c, reqBatch)
 	if err != nil {
 		if errors.Is(err, storage.ErrorIncorrectTypeMetrics) || errors.Is(err, storage.ErrorIncorrectTypeInt64) ||
 			errors.Is(err, storage.ErrorIncorrectTypeFloat64) {
