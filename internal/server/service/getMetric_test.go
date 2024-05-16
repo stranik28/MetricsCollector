@@ -171,7 +171,9 @@ func TestUpdateMetrics(t *testing.T) {
 	storage.ClearStorage()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := UpdateMetrics(tt.args)
+			batch := make([]models.Metrics, 1)
+			batch[0] = tt.args
+			_, err := UpdateMetrics(batch)
 			if err != nil {
 				assert.EqualError(t, err, tt.wantErr.Error())
 			}
