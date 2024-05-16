@@ -9,7 +9,23 @@ import (
 	"time"
 )
 
-func Connect(ctx context.Context, connectURL string) (*sql.DB, error) {
+type DBConnection struct {
+	Conn *sql.DB
+	url  string
+}
+
+func NewDBConnection(ctx context.Context, url string) (*DBConnection, error) {
+	dbCon, err := connect(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	return &DBConnection{
+		url:  url,
+		Conn: dbCon,
+	}, nil
+}
+
+func connect(ctx context.Context, connectURL string) (*sql.DB, error) {
 	db, err := sql.Open("pgx", connectURL)
 	if err != nil {
 		return nil, err

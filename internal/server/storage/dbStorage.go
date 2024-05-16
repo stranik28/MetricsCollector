@@ -27,14 +27,14 @@ CREATE TABLE IF NOT EXISTS gauge (
 	return nil
 }
 
-func LoadMetricsFromDB(c context.Context, db *sql.DB) (map[string]Metric, error) {
-	err := createTables(db)
+func LoadMetricsFromDB(c context.Context, db *DBConnection) (map[string]Metric, error) {
+	err := createTables(db.Conn)
 	if err != nil {
 		return nil, err
 	}
 	metrics := make(map[string]Metric)
 
-	rows, err := db.QueryContext(c, "SELECT name, value FROM counter;")
+	rows, err := db.Conn.QueryContext(c, "SELECT name, value FROM counter;")
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func LoadMetricsFromDB(c context.Context, db *sql.DB) (map[string]Metric, error)
 	}
 
 	// Запрос для получения измерений
-	rows, err = db.QueryContext(c, "SELECT name, value FROM gauge;")
+	rows, err = db.Conn.QueryContext(c, "SELECT name, value FROM gauge;")
 	if err != nil {
 		return nil, err
 	}
@@ -76,21 +76,21 @@ func LoadMetricsFromDB(c context.Context, db *sql.DB) (map[string]Metric, error)
 	return metrics, nil
 }
 
-func GetMetricByName(c context.Context, db *sql.DB, metricName string, metricType string) (Metric, error) {
+func GetMetricByName(c context.Context, db *DBConnection, metricName string, metricType string) (Metric, error) {
 	var metric Metric
 	var preReq *sql.Stmt
 	var err error
-	err = createTables(db)
+	err = createTables(db.Conn)
 	if err != nil {
 		return metric, err
 	}
 	if metricType == "gauge" {
-		preReq, err = db.PrepareContext(c, "SELECT * FROM gauge WHERE name=$1;")
+		preReq, err = db.Conn.PrepareContext(c, "SELECT * FROM gauge WHERE name=$1;")
 		if err != nil {
 			return metric, err
 		}
 	} else if metricType == "counter" {
-		preReq, err = db.PrepareContext(c, "SELECT * FROM counter WHERE name=$1;")
+		preReq, err = db.Conn.PrepareContext(c, "SELECT * FROM counter WHERE name=$1;")
 		if err != nil {
 			return metric, err
 		}
@@ -128,9 +128,9 @@ func GetMetricByName(c context.Context, db *sql.DB, metricName string, metricTyp
 	return metric, nil
 }
 
-func InsertMetric(c context.Context, db *sql.DB, metrics []models.Metrics) error {
+func InsertMetric(c context.Context, db *DBConnection, metrics []models.Metrics) error {
 	var err error
-	err = createTables(db)
+	err = createTables(db.Conn)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func InsertMetric(c context.Context, db *sql.DB, metrics []models.Metrics) error
 		return nil
 	}
 
-	tx, err := db.BeginTx(c, nil)
+	tx, err := db.Conn.BeginTx(c, nil)
 	if err != nil {
 		return err
 	}

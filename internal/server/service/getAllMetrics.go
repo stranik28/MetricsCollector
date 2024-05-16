@@ -8,7 +8,7 @@ import (
 
 func GetAllMetrics(c context.Context) (map[string]storage.Metric, error) {
 	if server.DBURL != "" {
-		db, err := storage.Connect(c, server.DBURL)
+		db, err := storage.NewDBConnection(c, server.DBURL)
 		if err != nil {
 			return nil, err
 		}

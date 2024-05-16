@@ -44,11 +44,11 @@ func UpdateMetrics(c context.Context, reqModels []models.Metrics) ([]models.Metr
 		respModels = append(respModels, reqModel)
 	}
 	if server.DBURL != "" {
-		db, err := storage.Connect(c, server.DBURL)
+		db, err := storage.NewDBConnection(c, server.DBURL)
 		if err != nil {
 			return nil, err
 		}
-		defer db.Close()
+		defer db.Conn.Close()
 		if err := storage.InsertMetric(c, db, respModels[1:]); err != nil {
 			return nil, err
 		}

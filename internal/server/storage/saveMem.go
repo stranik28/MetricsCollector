@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"github.com/stranik28/MetricsCollector/internal/server"
 	"os"
 	"time"
@@ -10,14 +9,14 @@ import (
 
 func InitSaveMem(filename string, restore bool, interval int, done chan os.Signal) {
 	c := context.Background()
-	db, _ := Connect(c, server.DBURL)
-	go func(db *sql.DB) {
+	db, _ := NewDBConnection(c, server.DBURL)
+	go func() {
 		<-done
 		if db == nil {
 			SaveMetricsToFile(server.FileStoragePath)
 		}
 		os.Exit(0)
-	}(db)
+	}()
 
 	periodDuration := time.Duration(interval) * time.Second
 	if restore {
