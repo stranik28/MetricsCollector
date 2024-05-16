@@ -2,31 +2,27 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"github.com/stranik28/MetricsCollector/internal/server"
 	"os"
 	"time"
 )
 
 func InitSaveMem(filename string, restore bool, interval int, done chan os.Signal) {
-	db, _ := Connect(server.DBURL, context.Background())
-	go func(db *sql.DB) {
+	c := context.Background()
+	db, _ := NewDBConnection(c, server.DBURL)
+	go func() {
 		<-done
-		if db != nil {
-			saveMetricsToDB(db)
-		} else {
+		if db == nil {
 			SaveMetricsToFile(server.FileStoragePath)
 		}
 		os.Exit(0)
-	}(db)
+	}()
 
 	periodDuration := time.Duration(interval) * time.Second
 	if restore {
 		var metrics map[string]Metric
 		var err error
-		if db != nil {
-			metrics, err = loadMetricsFromDB(db)
-		} else {
+		if db == nil {
 			metrics, err = LoadMetricsFromFile(server.FileStoragePath)
 		}
 		if err != nil {
@@ -42,9 +38,7 @@ func InitSaveMem(filename string, restore bool, interval int, done chan os.Signa
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if server.DBURL != "" {
-			saveMetricsToDB(db)
-		} else {
+		if server.DBURL == "" {
 			SaveMetricsToFile(filename)
 		}
 	}

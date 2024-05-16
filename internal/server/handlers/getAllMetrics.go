@@ -15,7 +15,7 @@ func AllRecordsHandler(c *gin.Context) {
 	}
 	logger := loggerC.(*zap.Logger)
 	logger.Info("Update metrics param", zap.Any("params", c.Params))
-	metrics, err := service.GetAllMetrics()
+	metrics, err := service.GetAllMetrics(c)
 	if err != nil {
 		logger.Info("Error getting metrics: %v", zap.Error(err))
 	}

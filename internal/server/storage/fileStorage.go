@@ -2,7 +2,9 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
+	"time"
 )
 
 func SaveMetricsToFile(filename string) {
@@ -15,7 +17,21 @@ func SaveMetricsToFile(filename string) {
 		return
 	}
 	err = os.WriteFile(filename, data, 0666)
-	if err != nil {
+	var pathError *os.PathError
+	if errors.As(err, &pathError) {
+		retries := []int{1, 3, 5}
+		for _, v := range retries {
+			if err := os.WriteFile(filename, data, 0666); err != nil {
+				if errors.As(err, &pathError) {
+					time.Sleep(time.Duration(v) * time.Millisecond)
+				} else {
+					return
+				}
+			} else {
+				return
+			}
+		}
+	} else if err != nil {
 		return
 	}
 }
@@ -23,8 +39,21 @@ func SaveMetricsToFile(filename string) {
 func LoadMetricsFromFile(filename string) (map[string]Metric, error) {
 	var metrics map[string]Metric
 	data, err := os.ReadFile(filename)
-	if err != nil {
-		return metrics, err
+	var pathError *os.PathError
+	if errors.As(err, &pathError) {
+		retries := []int{1, 3, 5}
+		for _, v := range retries {
+			if errors.As(err, &pathError) {
+				time.Sleep(time.Duration(v) * time.Second)
+				data, err = os.ReadFile(filename)
+			} else if err != nil {
+				return nil, err
+			} else {
+				break
+			}
+		}
+	} else if err != nil {
+		return nil, err
 	}
 	err = json.Unmarshal(data, &metrics)
 	if err != nil {

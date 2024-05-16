@@ -8,7 +8,7 @@ import (
 )
 
 func CheckDBConnection(c *gin.Context) {
-	_, err := storage.Connect(server.DBURL, c)
+	_, err := storage.NewDBConnection(c, server.DBURL)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

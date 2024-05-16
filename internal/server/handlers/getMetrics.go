@@ -35,7 +35,7 @@ func GetPostMetric(c *gin.Context) {
 	}
 	logger.Debug("received request", zap.Any("request", req))
 
-	responseModel, err := service.GetMetricByName(req, logger)
+	responseModel, err := service.GetMetricByName(c, req, logger)
 
 	if err != nil {
 		if errors.Is(err, storage.ErrorMetricsNotFound) {
@@ -63,7 +63,7 @@ func GetMetric(c *gin.Context) {
 	var req models.Metrics
 	req.MType = metricType
 	req.ID = metricName
-	val, err := service.GetMetricByName(req, logger)
+	val, err := service.GetMetricByName(c, req, logger)
 	if err != nil {
 		if errors.Is(err, storage.ErrorMetricsNotFound) {
 			c.JSON(http.StatusNotFound, err.Error())

@@ -1,8 +1,9 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
+	"github.com/stranik28/MetricsCollector/internal/server/models"
 )
 
 func createTables(db *sql.DB) error {
@@ -26,77 +27,14 @@ CREATE TABLE IF NOT EXISTS gauge (
 	return nil
 }
 
-func saveMetricsToDB(db *sql.DB) {
-	err := createTables(db)
+func LoadMetricsFromDB(c context.Context, db *DBConnection) (map[string]Metric, error) {
+	err := createTables(db.Conn)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	sqlStatementDelete := "TRUNCATE TABLE gauge, counter;"
-	_, err = db.Exec(sqlStatementDelete)
-	if err != nil {
-		panic(err)
-	}
-
-	sqlStrCounter := "INSERT INTO counter (name, value) VALUES "
-	sqlStrGauge := "INSERT INTO gauge (name, value) VALUES "
-	var countVal []any
-	var gaugeVal []any
-	metrics, err := GetAll()
-	if err != nil {
-		panic(err)
-	}
-	countCount := 0
-	countGauge := 0
-	if len(metrics) == 0 {
-		return
-	}
-	for key, val := range metrics {
-		if val.Counter != 0 {
-			sqlStrCounter += fmt.Sprintf(" ($%d, $%d), ", countCount+1, countCount+2)
-			countVal = append(countVal, key, val.Counter)
-			countCount += 2
-		} else {
-			sqlStrGauge += fmt.Sprintf(" ($%d, $%d), ", countGauge+1, countGauge+2)
-			gaugeVal = append(gaugeVal, key, val.Gauge)
-			countGauge += 2
-		}
-	}
-
-	sqlStrCounter = sqlStrCounter[:len(sqlStrCounter)-2] + ";"
-	sqlStrGauge = sqlStrGauge[:len(sqlStrGauge)-2] + ";"
-
-	tx, err := db.Begin()
-	if err != nil {
-		panic(err)
-	}
-	if countCount != 0 {
-		stmt, _ := db.Prepare(sqlStrCounter)
-		_, err := stmt.Exec(countVal...)
-		if err != nil {
-			tx.Rollback()
-			panic(err)
-		}
-	}
-	if countGauge != 0 {
-		stm, _ := db.Prepare(sqlStrGauge)
-		_, err := stm.Exec(gaugeVal...)
-		if err != nil {
-			tx.Rollback()
-			panic(err)
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		panic(err)
-	}
-
-}
-
-func loadMetricsFromDB(db *sql.DB) (map[string]Metric, error) {
 	metrics := make(map[string]Metric)
 
-	rows, err := db.Query("SELECT name, value FROM counter")
+	rows, err := db.Conn.QueryContext(c, "SELECT name, value FROM counter;")
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +54,7 @@ func loadMetricsFromDB(db *sql.DB) (map[string]Metric, error) {
 	}
 
 	// Запрос для получения измерений
-	rows, err = db.Query("SELECT name, value FROM gauge")
+	rows, err = db.Conn.QueryContext(c, "SELECT name, value FROM gauge;")
 	if err != nil {
 		return nil, err
 	}
@@ -130,14 +68,104 @@ func loadMetricsFromDB(db *sql.DB) (map[string]Metric, error) {
 		}
 		metrics[name] = Metric{Gauge: value}
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return metrics, nil
+}
+
+func GetMetricByName(c context.Context, db *DBConnection, metricName string, metricType string) (Metric, error) {
+	var metric Metric
+	var preReq *sql.Stmt
+	var err error
+	err = createTables(db.Conn)
+	if err != nil {
+		return metric, err
+	}
+	if metricType == "gauge" {
+		preReq, err = db.Conn.PrepareContext(c, "SELECT * FROM gauge WHERE name=$1;")
+		if err != nil {
+			return metric, err
+		}
+	} else if metricType == "counter" {
+		preReq, err = db.Conn.PrepareContext(c, "SELECT * FROM counter WHERE name=$1;")
+		if err != nil {
+			return metric, err
+		}
+	} else {
+		err := ErrorMetricsNotFound
+		return metric, err
+	}
+
+	rows, err := preReq.QueryContext(c, metricName)
+	if err != nil {
+		return metric, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if metricType == "counter" {
+			var name string
+			var value int64
+			if err := rows.Scan(&name, &value); err != nil {
+				return metric, err
+			}
+			metric.Counter = value
+			return metric, nil
+		}
+		var name string
+		var value float64
+		if err := rows.Scan(&name, &value); err != nil {
+			return metric, err
+		}
+		metric.Gauge = value
+	}
+	if err := rows.Err(); err != nil {
+		return metric, err
+	}
+	return metric, nil
+}
+
+func InsertMetric(c context.Context, db *DBConnection, metrics []models.Metrics) error {
+	var err error
+	err = createTables(db.Conn)
+	if err != nil {
+		return err
+	}
+
+	if len(metrics) == 0 {
+		return nil
+	}
+
+	tx, err := db.Conn.BeginTx(c, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+		} else if err != nil {
+			tx.Rollback()
+		} else {
+			err = tx.Commit()
+		}
+	}()
+
+	for _, val := range metrics {
+		if val.Delta != nil {
+			_, err = tx.ExecContext(c, "INSERT INTO counter (name, value) VALUES ($1, $2) "+
+				"ON CONFLICT (name) DO UPDATE SET value = counter.value + EXCLUDED.value;", val.ID, val.Delta)
+		} else {
+			_, err = tx.ExecContext(c, "INSERT INTO gauge (name, value) VALUES ($1, $2) "+
+				"ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value;", val.ID, val.Value)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
