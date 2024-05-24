@@ -25,6 +25,7 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Lo
 		}
 		metrics = append(metrics, model)
 	}
+	fmt.Println(metrics)
 	url := fmt.Sprintf("http://%s/update/", servAddr)
 	req := NewServer(url)
 	code, err := req.SendReqPost("POST", metrics, logger, secretKey)

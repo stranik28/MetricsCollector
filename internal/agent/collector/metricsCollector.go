@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"fmt"
 	"github.com/stranik28/MetricsCollector/internal/agent/server"
 	"github.com/stranik28/MetricsCollector/internal/agent/storage"
 	"go.uber.org/zap"
@@ -14,9 +13,6 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 	for {
 		logger.Info("Collecting metrics...")
 		metric, err := collectMetrics()
-		for key, _ := range metric.Gauge {
-			fmt.Println(key)
-		}
 		if err != nil {
 			logger.Error("Error collecting metrics", zap.Error(err))
 		}

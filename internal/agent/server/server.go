@@ -41,6 +41,11 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 	retries := []int{1, 3, 5}
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
+
+	if key != "" {
+		signature = Signature(bodyJSON, []byte(key))
+	}
+
 	if err != nil {
 		logger.Warn("Can't Marshal Body", zap.Any("body", body))
 		return 0, err
@@ -53,9 +58,6 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 
 	logger.Info("Sending request", zap.Any("body", string(bodyJSONCompressed)))
 
-	if key != "" {
-		signature = Signature(bodyJSONCompressed, []byte(key))
-	}
 	var code int
 
 	for _, i := range retries {
