@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -21,11 +20,17 @@ func Signature(body []byte, key []byte) []byte {
 func SignatureMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		signature := c.GetHeader("Hash")
-		if secretKey != "" && signature != "" {
 
+		if secretKey != "" && signature != "" && signature != "none" {
+			signatureHex, err := hex.DecodeString(signature)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get Signature"})
+				c.Abort()
+				return
+			}
 			bodyBytes, err := io.ReadAll(c.Request.Body)
 			if err != nil {
-				fmt.Println(err)
+
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read body"})
 				c.Abort()
 				return
@@ -34,10 +39,7 @@ func SignatureMiddleware(secretKey string) gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			expectedSignature := Signature(bodyBytes, []byte(secretKey))
-			if !hmac.Equal([]byte(signature), expectedSignature) {
-				fmt.Println("signature invalid")
-				fmt.Printf("Expected: %x\n", expectedSignature)
-				fmt.Printf("Received: %x\n", signature)
+			if !hmac.Equal(signatureHex, expectedSignature) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
 				c.Abort()
 				return

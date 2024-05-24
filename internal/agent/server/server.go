@@ -2,8 +2,8 @@ package server
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/stranik28/MetricsCollector/internal/agent/models"
 	"go.uber.org/zap"
 	"net/http"
@@ -69,7 +69,7 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
 		if key != "" {
-			req.Header.Set("Hash", string(signature))
+			req.Header.Set("Hash", hex.EncodeToString(signature))
 		}
 		resp, err := client.Do(req)
 		if err != nil {
@@ -81,12 +81,10 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 		code = resp.StatusCode
 
 		if code > 200 {
-			fmt.Println("Code not 200")
-			fmt.Printf("Response Code: %d\n", code)
-			fmt.Println("Response Headers: ", resp.Header)
+			time.Sleep(time.Duration(i) * time.Second)
+		} else if code == 200 {
 			break
 		}
-		time.Sleep(time.Duration(i) * time.Second)
 	}
 
 	return code, nil
