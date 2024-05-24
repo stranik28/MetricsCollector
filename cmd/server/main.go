@@ -17,7 +17,7 @@ func main() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go storage.InitSaveMem(server.FileStoragePath, server.Restore, server.StoreInterval, done)
-	r := handlers.Routers()
+	r := handlers.Routers(server.FlagSecretKey)
 	err = r.Run(server.FlagRunAddr)
 	if err != nil {
 		panic(err)

@@ -45,6 +45,7 @@ func collectMetrics() (storage.Metric, error) {
 			}
 		}
 	}
+	fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 	gauge["RandomValue"] = rand.Float64()
 	counter += 1

@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Logger) {
+func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Logger, secretKey string) {
 	metrics := make([]models.Metrics, 0)
 	for _, store := range memStorage.Metrics {
 		for k, v := range store.Gauge {
@@ -27,7 +27,7 @@ func SendMetrics(memStorage *storage.MemStorage, servAddr string, logger *zap.Lo
 	}
 	url := fmt.Sprintf("http://%s/update/", servAddr)
 	req := NewServer(url)
-	code, err := req.SendReqPost("POST", metrics, logger)
+	code, err := req.SendReqPost("POST", metrics, logger, secretKey)
 	if code != 200 || err != nil {
 		logger.Error("Failed to send metrics", zap.Int("code", code),
 			zap.String("url", url), zap.Error(err))

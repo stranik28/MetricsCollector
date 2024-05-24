@@ -9,12 +9,14 @@ import (
 var FlagServAddr string
 var FlagReportInterval int
 var FlagPollInterval int
+var FlagSecretKey string
 
 func ParsFlags() error {
 
 	flag.StringVar(&FlagServAddr, "a", "127.0.0.1:8080", "address and port to run server")
 	flag.IntVar(&FlagReportInterval, "r", 2, "Frequency of metrics collecting")
 	flag.IntVar(&FlagPollInterval, "p", 10, "Frequency of metrics pooling")
+	flag.StringVar(&FlagSecretKey, "k", "", "Secret key")
 
 	flag.Parse()
 
@@ -36,6 +38,10 @@ func ParsFlags() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if envSecretKey := os.Getenv("KEY"); envSecretKey != "" {
+		FlagSecretKey = envSecretKey
 	}
 	return nil
 }

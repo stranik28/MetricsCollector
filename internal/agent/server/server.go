@@ -36,7 +36,8 @@ func (serv *Server) SendReq(method string, logger *zap.Logger) int {
 	return code
 }
 
-func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger) (int, error) {
+func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger, key string) (int, error) {
+	var signature []byte
 	retries := []int{1, 3, 5}
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
@@ -52,6 +53,9 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 
 	logger.Info("Sending request", zap.Any("body", string(bodyJSONCompressed)))
 
+	if key != "" {
+		signature = Signature(bodyJSONCompressed, []byte(key))
+	}
 	var code int
 
 	for _, i := range retries {
@@ -61,6 +65,9 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
+		if key != "" {
+			req.Header.Set("Hash", string(signature))
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			logger.Error("Cant's " + err.Error())
