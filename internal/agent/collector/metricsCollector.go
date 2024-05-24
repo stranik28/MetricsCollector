@@ -17,12 +17,12 @@ func MetricsCollector(flagReportInterval int, flagPollInterval int, flagServAddr
 			logger.Error("Error collecting metrics", zap.Error(err))
 		}
 		memStorage.AddMetric(metric)
+		count += flagReportInterval
 		if count >= flagPollInterval {
 			count = 0
 			logger.Info("Polling metrics...")
 			server.SendMetrics(memStorage, flagServAddr, logger, secretKey)
 		}
 		time.Sleep(time.Duration(flagReportInterval) * time.Second)
-		count += flagReportInterval
 	}
 }

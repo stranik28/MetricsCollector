@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/stranik28/MetricsCollector/internal/agent"
 	"github.com/stranik28/MetricsCollector/internal/agent/collector"
 	"github.com/stranik28/MetricsCollector/internal/logger"
@@ -10,7 +9,6 @@ import (
 
 func main() {
 	err := agent.ParsFlags()
-	fmt.Println("Agent parsing")
 	if err != nil {
 		panic(err)
 	}

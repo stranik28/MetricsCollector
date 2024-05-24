@@ -14,11 +14,13 @@ func Routers(secretKey string) *gin.Engine {
 	}
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	r.Use(middleware.Gzip())
 	r.Use(middleware.SignatureMiddleware(secretKey))
 	r.Use(middleware.Logger(logger1))
-	r.Use(middleware.Gzip())
+
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(middleware.ResponseSignatureMiddleware(secretKey))
+
 	r.POST("/update/:metricType/:metricName/:metricValue", UpdateMetricsParam)
 	r.POST("/update/", UpdateMetrics)
 	r.POST("/updates/", UpdateMetrics)

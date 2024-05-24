@@ -34,8 +34,10 @@ func SignatureMiddleware(secretKey string) gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			expectedSignature := Signature(bodyBytes, []byte(secretKey))
-			if !hmac.Equal([]byte(signature), []byte(hex.EncodeToString(expectedSignature))) {
+			if !hmac.Equal([]byte(signature), expectedSignature) {
 				fmt.Println("signature invalid")
+				fmt.Printf("Expected: %x\n", expectedSignature)
+				fmt.Printf("Received: %x\n", signature)
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
 				c.Abort()
 				return

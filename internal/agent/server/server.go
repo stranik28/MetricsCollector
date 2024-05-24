@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/stranik28/MetricsCollector/internal/agent/models"
 	"go.uber.org/zap"
 	"net/http"
@@ -79,7 +80,10 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 
 		code = resp.StatusCode
 
-		if code >= 200 && code < 300 {
+		if code > 200 {
+			fmt.Println("Code not 200")
+			fmt.Printf("Response Code: %d\n", code)
+			fmt.Println("Response Headers: ", resp.Header)
 			break
 		}
 		time.Sleep(time.Duration(i) * time.Second)

@@ -2,7 +2,6 @@ package server
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"strconv"
 )
@@ -53,6 +52,6 @@ func ParsFlags() error {
 	if envSecretKey := os.Getenv("KEY"); envSecretKey != "" {
 		FlagSecretKey = envSecretKey
 	}
-	fmt.Println("Secret key:", FlagSecretKey)
+
 	return nil
 }
