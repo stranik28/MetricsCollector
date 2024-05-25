@@ -1,6 +1,6 @@
 module github.com/stranik28/MetricsCollector
 
-go 1.22
+go 1.21.10
 
 require (
 	github.com/gin-contrib/gzip v1.0.0
