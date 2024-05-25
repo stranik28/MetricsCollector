@@ -10,6 +10,7 @@ var FlagServAddr string
 var FlagReportInterval int
 var FlagPollInterval int
 var FlagSecretKey string
+var RateLimit int
 
 func ParsFlags() error {
 
@@ -17,6 +18,7 @@ func ParsFlags() error {
 	flag.IntVar(&FlagReportInterval, "r", 2, "Frequency of metrics collecting")
 	flag.IntVar(&FlagPollInterval, "p", 10, "Frequency of metrics pooling")
 	flag.StringVar(&FlagSecretKey, "k", "", "Secret key")
+	flag.IntVar(&RateLimit, "l", 2, "Rate limit")
 
 	flag.Parse()
 
@@ -42,6 +44,13 @@ func ParsFlags() error {
 
 	if envSecretKey := os.Getenv("KEY"); envSecretKey != "" {
 		FlagSecretKey = envSecretKey
+	}
+
+	if envRateLimit := os.Getenv("RATE_LIMIT"); envRateLimit != "" {
+		RateLimit, err = strconv.Atoi(envRateLimit)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
