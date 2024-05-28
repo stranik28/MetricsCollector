@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/stranik28/MetricsCollector/internal/agent/models"
 	"go.uber.org/zap"
@@ -36,10 +37,16 @@ func (serv *Server) SendReq(method string, logger *zap.Logger) int {
 	return code
 }
 
-func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger) (int, error) {
+func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *zap.Logger, key string) (int, error) {
+	var signature []byte
 	retries := []int{1, 3, 5}
 	client := &http.Client{}
 	bodyJSON, err := json.Marshal(body)
+
+	if key != "" {
+		signature = Signature(bodyJSON, []byte(key))
+	}
+
 	if err != nil {
 		logger.Warn("Can't Marshal Body", zap.Any("body", body))
 		return 0, err
@@ -61,6 +68,9 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Encoding", "gzip")
+		if key != "" {
+			req.Header.Set("Hash", hex.EncodeToString(signature))
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			logger.Error("Cant's " + err.Error())
@@ -70,10 +80,11 @@ func (serv *Server) SendReqPost(method string, body []models.Metrics, logger *za
 
 		code = resp.StatusCode
 
-		if code >= 200 && code < 300 {
+		if code > 200 {
+			time.Sleep(time.Duration(i) * time.Second)
+		} else if code == 200 {
 			break
 		}
-		time.Sleep(time.Duration(i) * time.Second)
 	}
 
 	return code, nil

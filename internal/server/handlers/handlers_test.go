@@ -38,7 +38,7 @@ func makeReqGet(url string, method string) (*http.Request, *httptest.ResponseRec
 }
 
 func TestUpdateMetricsHandler(t *testing.T) {
-	router := Routers()
+	router := Routers("")
 	value := 123.764564253
 	model := models.Metrics{
 		ID:    "Some metric",
@@ -82,7 +82,7 @@ func TestGetByName(t *testing.T) {
 		storage.SetMemStorage(k, v)
 	}
 
-	router := Routers()
+	router := Routers("")
 
 	model := models.Metrics{
 		ID:    "GaugeMetric",
@@ -143,7 +143,7 @@ func TestGetMetricHandle(t *testing.T) {
 	for k, v := range data {
 		storage.SetMemStorage(k, v)
 	}
-	router := Routers()
+	router := Routers("")
 
 	req, w := makeReqGet("/", "GET")
 
@@ -170,7 +170,7 @@ func TestGetMetricHandle(t *testing.T) {
 }
 
 func TestUpdateMetricsHandlerParams(t *testing.T) {
-	router := Routers()
+	router := Routers("")
 	req, w := makeReqGet("/update/gauge/Some metric/123.764564253", "POST")
 	router.ServeHTTP(w, req)
 
@@ -190,7 +190,7 @@ func TestGetByNameParams(t *testing.T) {
 		storage.SetMemStorage(k, v)
 	}
 
-	router := Routers()
+	router := Routers("")
 
 	req, w := makeReqGet("/value/gauge/GaugeMetric", "GET")
 
