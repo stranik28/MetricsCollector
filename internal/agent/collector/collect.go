@@ -56,7 +56,6 @@ func collectMetrics(metricsChanel chan storage.Metric, logger *zap.Logger) {
 	if err != nil {
 		logger.Error("Failed to covertError to Json", zap.Error(err))
 	}
-
 	for field, val := range inInterface {
 		if slices.Contains(storage.GaugeMetrics, field) {
 			if floatValue, ok := val.(float64); ok {
